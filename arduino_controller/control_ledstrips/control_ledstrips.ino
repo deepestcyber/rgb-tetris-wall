@@ -13,12 +13,12 @@
 #define LEDS_PIN_5 7
 #define LEDS_PIN_6 8
 #define LEDS_PIN_7 9
-#define LEDS_PIN_8 8
-#define LEDS_PIN_9 9
-#define LEDS_PIN_10 10
-#define LEDS_PIN_11 11
-#define LEDS_PIN_12 12
-#define LEDS_PIN_13 13
+#define LEDS_PIN_8 10
+#define LEDS_PIN_9 11
+#define LEDS_PIN_10 12
+#define LEDS_PIN_11 13
+#define LEDS_PIN_12 14
+#define LEDS_PIN_13 15
 #define LEDS_PIN_14 18
 #define LEDS_PIN_15 19
 #define MODEL WS2812B //WS2811, WS2812b
