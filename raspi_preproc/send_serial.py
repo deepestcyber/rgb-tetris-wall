@@ -1,8 +1,36 @@
 import serial
 import time
-USBPORT = '/DEV/TTYama0' #check correct port first
+import datetime
+USBPORT = '/dev/ttyACM1' #check correct port first
+NUM_LEDS_H = 12 #16
+NUM_LEDS_V = 24 #24
+FPS = 50
 
-s = serial.Serial(USBPORT, 115200)
-s.open()
+s = serial.Serial(USBPORT, 115200) #115200 230400
 time.sleep(5)
+
+leds = [[0 for i in range(NUM_LEDS_V)] for j in range(NUM_LEDS_H)]
+counter = 0
+delaycounter = 1
+delay = 10
+
+while True:
+    timestart = datetime.datetime.now()
+    
+    for i in range(NUM_LEDS_H):
+        for j in range(NUM_LEDS_V):
+            leds[i][j] = (256/NUM_LEDS_V*(counter+i+j))%256
+    if (delaycounter%delay == 0):    
+        counter=(counter+1)%NUM_LEDS_V
+    delaycounter += 1
+
+    s.write("".join([chr(m) for n in leds for m in n]))
+    s.flush()
+    
+    timefin = datetime.datetime.now()
+    waittime = max(0.0,(1./FPS)-((timefin-timestart).microseconds/1000000))
+    print(waittime)
+    time.sleep(waittime)                        
+
+
 
