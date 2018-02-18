@@ -33,10 +33,9 @@ CRGB leds[NUM_LEDS_H][NUM_LEDS_V];
 
 //modes: 0 = light patterns, 1 = music patterns, 2 = image stream (24bit), 3 = video stream
 int mode = 3;
+int state = 0;
 //TODO: define a good color palette - perhaps like NES?
 extern const CHSV currentPalette [64] = {CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216)};
-//String data = "////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////";
-//String data = "";
 
 void setup() {
   // put your setup code here, to run once:
@@ -82,6 +81,7 @@ void loop() {
         leds[i][NUM_LEDS_V-1-j] = CHSV((int)data[i*NUM_LEDS_V+j], 255, 64);
       }
     }
+    FastLED.show();
   }
   //mode - image stream: one frames with 24 bit/px (at max every 80ms)
   else if (mode == 2){
@@ -93,9 +93,16 @@ void loop() {
   }
   //mode - dynamic patterns (hardcoded) - perhaps via several sub-modes
   else { //mode == 0
+    for(int i=0; i<NUM_LEDS_H; i++){
+      for(int j=0; j<NUM_LEDS_V; j++){ 
+        leds[i][NUM_LEDS_V-1-j] = CHSV(256/NUM_LEDS_V*((state+i+j)%NUM_LEDS_V+1)-1, 255, 64);
+      }
+    }
+    state=(state+1)%NUM_LEDS_V;
+    FastLED.show();
+    delay(1000); 
   }
 
-  FastLED.show();
   //delay(WAITTIME);    
 }
 

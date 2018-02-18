@@ -1,7 +1,7 @@
 import serial
 import time
 import datetime
-USBPORT = '/dev/ttyACM1' #check correct port first
+USBPORT = '/dev/ttyACM0' #check correct port first
 NUM_LEDS_H = 12 #16
 NUM_LEDS_V = 24 #24
 FPS = 25
@@ -19,7 +19,7 @@ while True:
     
     for i in range(NUM_LEDS_H):
         for j in range(NUM_LEDS_V):
-            leds[i][j] = (256/NUM_LEDS_V*(counter+i+j))%256
+            leds[i][j] = 256/NUM_LEDS_V*((counter+i+j)%NUM_LEDS_V+1)-1
     if (delaycounter%delay == 0):    
         counter=(counter+1)%NUM_LEDS_V
     delaycounter=(delaycounter+1)%delay
