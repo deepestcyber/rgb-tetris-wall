@@ -3,6 +3,8 @@
 #include "FastLED.h"
 #include "elapsedMillis.h"
 
+#define DEBUG_MODE 1
+
 #define LEDS_PIN_0 A0
 #define LEDS_PIN_1 A1
 #define LEDS_PIN_2 2
@@ -181,7 +183,7 @@ void loop() {
     else if (submode[0] == 126){
       //copy this check for creating a new pattern
     }
-    else if (submode[0] == 5){
+    else if (submode[0] == 6){
       for(int i=0; i<NUM_LEDS_H; i++){
         for(int j=0; j<NUM_LEDS_V; j++){ 
           leds[i][NUM_LEDS_V-1-j] = CRGB(((brightness)*60+3)%256, ((brightness)*60+3)%256, ((brightness)*60+3)%256);
@@ -189,7 +191,7 @@ void loop() {
       }
       waitingTime = 1000;
     }
-    else if (submode[0] == 4){
+    else if (submode[0] == 5){
       for(int i=0; i<NUM_LEDS_H; i++){
         for(int j=0; j<NUM_LEDS_V; j++){ 
           leds[i][NUM_LEDS_V-1-j] = CHSV(rand()%256, (pspeed*64)%256, (brightness*64-1)%256);
@@ -197,7 +199,7 @@ void loop() {
       }
       waitingTime = 1000;
     }
-    else if (submode[0] == 3){
+    else if (submode[0] == 4){
       for(int i=0; i<NUM_LEDS_H; i++){
         for(int j=0; j<NUM_LEDS_V; j++){ 
           leds[i][NUM_LEDS_V-1-j] = CHSV(((state+(rand()%12-1)+j)-1)%256, 255, valueb[brightness][3]);
@@ -206,7 +208,7 @@ void loop() {
       state=(state+rand()%8)%256;
       waitingTime = pspeed*pspeed*62+8;
     }
-    else if (submode[0] == 2){
+    else if (submode[0] == 3){
       for(int i=0; i<NUM_LEDS_H; i++){
         for(int j=0; j<NUM_LEDS_V; j++){ 
           leds[i][NUM_LEDS_V-1-j] = CHSV((rand()%12+256/NUM_LEDS_V*(state+(rand()%5-1)+j)-1)%256, 255, valueb[brightness][3]);
@@ -215,13 +217,22 @@ void loop() {
       state=(state+1)%NUM_LEDS_V;
       waitingTime = pspeed*pspeed*62+8;
     }
-    else if (submode[0] == 1){
+    else if (submode[0] == 2){
       for(int i=0; i<NUM_LEDS_H; i++){
         for(int j=0; j<NUM_LEDS_V; j++){ 
           leds[i][NUM_LEDS_V-1-j] = CHSV((7+256/NUM_LEDS_V*(state+i+j)-1)%256, 255, valueb[brightness][3]);
         }
       }
       state=(state+(-1+(rand()%4)))%NUM_LEDS_V;
+      waitingTime = pspeed*pspeed*62+8;
+    }
+    else if (submode[0] == 1){
+      for(int i=0; i<NUM_LEDS_H; i++){
+        for(int j=0; j<NUM_LEDS_V; j++){ 
+          leds[i][NUM_LEDS_V-1-j] = CRGB((7+256/NUM_LEDS_V*(state+i-j)-1)%256, (7+256/NUM_LEDS_V*(state-i-j)-1)%256, (7+256/NUM_LEDS_V*(state+i+j)-1)%256);
+        }
+      }
+      state=(state+1)%NUM_LEDS_V;
       waitingTime = pspeed*pspeed*62+8;
     }
     else { //submode[0] == 0
@@ -235,8 +246,16 @@ void loop() {
     }
     //delay(cspeed);
   }
-
+  if (DEBUG_MODE) {
+    Serial.print("time proc/show (mode: ");
+    Serial.print(mode);Serial.print(", submode: ");Serial.print(submode[mode]);Serial.print("): ");
+    Serial.print(elapsedTime);
+  }
   FastLED.show();
+  if (DEBUG_MODE) {
+    Serial.print("/");
+    Serial.println(elapsedTime);
+  }
   timedDelay(waitingTime); 
 }
 
