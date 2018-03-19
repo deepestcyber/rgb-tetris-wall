@@ -3,7 +3,7 @@
 #include "FastLED.h"
 #include "elapsedMillis.h"
 
-#define DEBUG_MODE 1
+#define DEBUG_MODE 0
 
 #define LEDS_PIN_0 A0
 #define LEDS_PIN_1 A1
@@ -21,6 +21,8 @@
 #define LEDS_PIN_13 13
 #define LEDS_PIN_14 20
 #define LEDS_PIN_15 21
+#define FEEDBACK_PIN_1 17
+#define FEEDBACK_PIN_2 16
 #define BUTTON_PIN_0 A7 //Mode switch
 #define BUTTON_PIN_1 A8 //Decrement submode
 #define BUTTON_PIN_2 A9 //Increment submode
@@ -35,15 +37,15 @@
 #define NUM_BUTTONS 7 //7
 #define BUTTON_WAIT 50 //time (ms) to wait for another buttoncheck
 #define NUM_POTI 1 //just for testing
-#define NUM_BITS_VSTREAM 8 //6
+#define NUM_BITS_VSTREAM 6 //6
 #define NUM_FPS_VSTREAM 50
 #define WAITTIME_VSTREAM 20 //1000/NUM_FRAMES_VSTREAM
-#define NUM_BYTES_VSTREAM 384 //288 //NUM_LEDS_H*NUM_LEDS_V*NUM_BITS_VSTREAM/8;
+#define NUM_BYTES_VSTREAM 288 //288 //NUM_LEDS_H*NUM_LEDS_V*NUM_BITS_VSTREAM/8;
 
 CRGB leds[NUM_LEDS_H][NUM_LEDS_V];
 
 //modes: 0 = light patterns, 1 = music patterns, 2 = image stream (24bit), 3 = video stream
-int mode = 0;
+int mode = 3;
 int submode [4] = {0, 0, 0, 0};
 int submodeMax [4] = {128, 1, 1, 1}; //Used for all mode switches
 
@@ -53,13 +55,17 @@ elapsedMillis elapsedTime;
 int waitingTime = 0; 
 
 int pspeed = 2; //[0..4]
-int cspeed = 512;
+int cspeed = 255;
 int brightness = 2; //[0..4]
 const int valueb [5][4] = {{3,9,27,81},{4,12,36,108},{5,15,45,135},{7,21,63,189},{9,27,81,243}};
 int state = 0;
 
 //TODO: define a good color palette - perhaps like NES?
 extern const CHSV currentPalette [64] = {CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216), CHSV(255,255,8), CHSV(255,255,24), CHSV(255,255,72), CHSV(255,255,216)};
+
+byte data[NUM_BYTES_VSTREAM];
+//uint8_t data[NUM_BYTES_VSTREAM];
+//uint8_t dataImage[NUM_LEDS_H*NUM_LEDS_V*3];
 
 void setup() {
   for(int i=0; i<NUM_BUTTONS; i++){
@@ -74,25 +80,29 @@ void setup() {
   pinMode(BUTTON_PIN_5, INPUT_PULLUP);
   pinMode(BUTTON_PIN_6, INPUT_PULLUP);
 
-  Serial.begin(115200); //115200 230400
+  Serial.begin(115200); //57600 115200 230400
+  Serial.setTimeout(2000); //ms 40 1000
 
-  if (NUM_LEDS_H> 0) FastLED.addLeds<MODEL, LEDS_PIN_0, RGB>(leds[0], NUM_LEDS_V);
-  if (NUM_LEDS_H> 1) FastLED.addLeds<MODEL, LEDS_PIN_1, RGB>(leds[1], NUM_LEDS_V);
-  if (NUM_LEDS_H> 2) FastLED.addLeds<MODEL, LEDS_PIN_2, RGB>(leds[2], NUM_LEDS_V);
-  if (NUM_LEDS_H> 3) FastLED.addLeds<MODEL, LEDS_PIN_3, RGB>(leds[3], NUM_LEDS_V);
-  if (NUM_LEDS_H> 4) FastLED.addLeds<MODEL, LEDS_PIN_4, RGB>(leds[4], NUM_LEDS_V);
-  if (NUM_LEDS_H> 5) FastLED.addLeds<MODEL, LEDS_PIN_5, RGB>(leds[5], NUM_LEDS_V);
-  if (NUM_LEDS_H> 6) FastLED.addLeds<MODEL, LEDS_PIN_6, RGB>(leds[6], NUM_LEDS_V);
-  if (NUM_LEDS_H> 7) FastLED.addLeds<MODEL, LEDS_PIN_7, RGB>(leds[7], NUM_LEDS_V);
-  if (NUM_LEDS_H> 8) FastLED.addLeds<MODEL, LEDS_PIN_8, RGB>(leds[8], NUM_LEDS_V);
-  if (NUM_LEDS_H> 9) FastLED.addLeds<MODEL, LEDS_PIN_9, RGB>(leds[9], NUM_LEDS_V);
-  if (NUM_LEDS_H> 10) FastLED.addLeds<MODEL, LEDS_PIN_10, RGB>(leds[10], NUM_LEDS_V);
-  if (NUM_LEDS_H> 11) FastLED.addLeds<MODEL, LEDS_PIN_11, RGB>(leds[11], NUM_LEDS_V);
-  if (NUM_LEDS_H> 12) FastLED.addLeds<MODEL, LEDS_PIN_12, RGB>(leds[12], NUM_LEDS_V);
-  if (NUM_LEDS_H> 13) FastLED.addLeds<MODEL, LEDS_PIN_13, RGB>(leds[13], NUM_LEDS_V);
-  if (NUM_LEDS_H> 14) FastLED.addLeds<MODEL, LEDS_PIN_14, RGB>(leds[14], NUM_LEDS_V);
-  if (NUM_LEDS_H> 15) FastLED.addLeds<MODEL, LEDS_PIN_15, RGB>(leds[15], NUM_LEDS_V);
+  if (NUM_LEDS_H> 0) FastLED.addLeds<MODEL, LEDS_PIN_0, GRB>(leds[0], NUM_LEDS_V);
+  if (NUM_LEDS_H> 1) FastLED.addLeds<MODEL, LEDS_PIN_1, GRB>(leds[1], NUM_LEDS_V);
+  if (NUM_LEDS_H> 2) FastLED.addLeds<MODEL, LEDS_PIN_2, GRB>(leds[2], NUM_LEDS_V);
+  if (NUM_LEDS_H> 3) FastLED.addLeds<MODEL, LEDS_PIN_3, GRB>(leds[3], NUM_LEDS_V);
+  if (NUM_LEDS_H> 4) FastLED.addLeds<MODEL, LEDS_PIN_4, GRB>(leds[4], NUM_LEDS_V);
+  if (NUM_LEDS_H> 5) FastLED.addLeds<MODEL, LEDS_PIN_5, GRB>(leds[5], NUM_LEDS_V);
+  if (NUM_LEDS_H> 6) FastLED.addLeds<MODEL, LEDS_PIN_6, GRB>(leds[6], NUM_LEDS_V);
+  if (NUM_LEDS_H> 7) FastLED.addLeds<MODEL, LEDS_PIN_7, GRB>(leds[7], NUM_LEDS_V);
+  if (NUM_LEDS_H> 8) FastLED.addLeds<MODEL, LEDS_PIN_8, GRB>(leds[8], NUM_LEDS_V);
+  if (NUM_LEDS_H> 9) FastLED.addLeds<MODEL, LEDS_PIN_9, GRB>(leds[9], NUM_LEDS_V);
+  if (NUM_LEDS_H> 10) FastLED.addLeds<MODEL, LEDS_PIN_10, GRB>(leds[10], NUM_LEDS_V);
+  if (NUM_LEDS_H> 11) FastLED.addLeds<MODEL, LEDS_PIN_11, GRB>(leds[11], NUM_LEDS_V);
+  if (NUM_LEDS_H> 12) FastLED.addLeds<MODEL, LEDS_PIN_12, GRB>(leds[12], NUM_LEDS_V);
+  if (NUM_LEDS_H> 13) FastLED.addLeds<MODEL, LEDS_PIN_13, GRB>(leds[13], NUM_LEDS_V);
+  if (NUM_LEDS_H> 14) FastLED.addLeds<MODEL, LEDS_PIN_14, GRB>(leds[14], NUM_LEDS_V);
+  if (NUM_LEDS_H> 15) FastLED.addLeds<MODEL, LEDS_PIN_15, GRB>(leds[15], NUM_LEDS_V);
 
+  for(int i=0; i<NUM_BYTES_VSTREAM; i++){ 
+    data[i] = 0;
+  }
   //setPaletteNES();
 }
 
@@ -149,20 +159,37 @@ void loop() {
 
   //mode - video stream: 50fps a frames with 6 bit/px
   if (mode == 3){
-    //String data = "////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////";
-    char data[NUM_BYTES_VSTREAM];
-    if (Serial.available()) {
-      Serial.readBytes(data, NUM_BYTES_VSTREAM);
-      //data = buf;//Convert.ToBase64String(buf);
-    }
+    //if (Serial.available()) {
+    //    got = Serial.readBytes(data, NUM_BYTES_VSTREAM);
+    //}
+
+    Serial.readBytes(data, NUM_BYTES_VSTREAM);
+//    int got = Serial.readBytes(data, NUM_BYTES_VSTREAM);
+//    if ( got == NUM_BYTES_VSTREAM ) {
+//      digitalWrite(FEEDBACK_PIN_1, LOW);
+//      digitalWrite(FEEDBACK_PIN_2, HIGH);
+//    } else {
+//      digitalWrite(FEEDBACK_PIN_1, HIGH);
+//      digitalWrite(FEEDBACK_PIN_2, LOW);
+//    }
   
+    int k=0;
     for(int i=0; i<NUM_LEDS_H; i++){
-      for(int j=0; j<NUM_LEDS_V; j++){ 
-        //TODO: still need to convert to sixbits
-        //leds[i][NUM_LEDS_V-1-j] = currentPalette[(int)data[i*NUM_LEDS_V+j]];
-        leds[i][NUM_LEDS_V-1-j] = CHSV((int)data[i*NUM_LEDS_V+j], 255, 64);
+      for(int j=0; j<NUM_LEDS_V; j+=4){ 
+        leds[i][NUM_LEDS_V-1-j-0] = CHSV((uint8_t)(data[k] >> 2)*4, 255, 64);
+        leds[i][NUM_LEDS_V-1-j-1] = CHSV((uint8_t)(((data[k] & 0x03) << 4) | (data[k + 1] >> 4))*4, 255, 64);
+        leds[i][NUM_LEDS_V-1-j-2] = CHSV((uint8_t)(((data[k + 1] & 0x0f) << 2) | (data[k + 2] >> 6))*4, 255, 64);
+        leds[i][NUM_LEDS_V-1-j-3] = CHSV((uint8_t)(data[k + 2] & 0x3f)*4, 255, 64);        
+        k+=3;
       }
     }
+//    for(int i=0; i<NUM_LEDS_H; i++){
+//      for(int j=0; j<NUM_LEDS_V; j++){ 
+//        //TODO: still need to convert to sixbits
+//        //leds[i][NUM_LEDS_V-1-j] = currentPalette[(int)data[i*NUM_LEDS_V+j]];
+//        leds[i][NUM_LEDS_V-1-j] = CHSV((int)data[i*NUM_LEDS_V+j], 255, 64);
+//      }
+//    }
     waitingTime = WAITTIME_VSTREAM;
   }
   
@@ -258,4 +285,6 @@ void loop() {
   }
   timedDelay(waitingTime); 
 }
+
+// ------ Tools ------
 
