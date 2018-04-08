@@ -3,11 +3,12 @@
 
 #include "FastLED.h"
 #include "elapsedMillis.h"
+//#include "SPI.h"
 
 #define DEBUG_MODE 0
 
-#define LEDS_PIN_0 A0
-#define LEDS_PIN_1 A1
+#define LEDS_PIN_0 0 //A0
+#define LEDS_PIN_1 1 //A1
 #define LEDS_PIN_2 2
 #define LEDS_PIN_3 3
 #define LEDS_PIN_4 4
@@ -41,8 +42,9 @@
 #define NUM_BITS_VSTREAM 6 //6
 #define NUM_FPS_VSTREAM 50
 #define WAITTIME_VSTREAM 40 //20 1000/NUM_FRAMES_VSTREAM
-#define WAITTIME_ISTREAM 2000 //20 1000/NUM_FRAMES_VSTREAM
+#define WAITTIME_ISTREAM 1000 //20 1000/NUM_FRAMES_VSTREAM
 #define NUM_BYTES_VSTREAM 288 //288 //NUM_LEDS_H*NUM_LEDS_V*NUM_BITS_VSTREAM/8;
+#define NUM_BYTES_ISTREAM NUM_LEDS_H*NUM_LEDS_V*3
 
 CRGB leds[NUM_LEDS_H][NUM_LEDS_V];
 
@@ -66,8 +68,12 @@ int state = 0;
 extern const CHSV currentPalette [64] = {CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216)};
 
 byte data[NUM_BYTES_VSTREAM];
+byte dataImage[NUM_BYTES_ISTREAM];
 //uint8_t data[NUM_BYTES_VSTREAM];
-//uint8_t dataImage[NUM_LEDS_H*NUM_LEDS_V*3];
+//uint8_t dataImage[NUM_BYTES_ISTREAM];
+// for SPI:
+//volatile byte spi_pos;
+//volatile boolean process_it;
 
 void setup() {
   for (int i = 0; i < NUM_BUTTONS; i++) {
@@ -82,9 +88,26 @@ void setup() {
   pinMode(BUTTON_PIN_5, INPUT_PULLUP);
   pinMode(BUTTON_PIN_6, INPUT_PULLUP);
 
-  Serial.begin(115200); //57600 115200 230400
-  Serial.setTimeout(WAITTIME_VSTREAM); //ms 40 1000
+  //  Communication via UART
+  // Use RX1 (18) & TX1 (19)!!!
+  Serial1.begin(230400); //57600 115200 230400
+  Serial1.setTimeout(WAITTIME_VSTREAM); //ms 40 1000
 
+  //  Communication via SPI
+//  // for debug
+//  Serial.begin(115200); //57600 115200 230400
+//  Serial.setTimeout(WAITTIME_VSTREAM); //ms 40 1000
+//  // turn on SPI in slave mode
+//  SPCR |= bit (SPE);
+//  // have to send on master in, *slave out*
+//  pinMode(MISO, OUTPUT);
+//  // get ready for an interrupt 
+//  spi_pos = 0;   // buffer empty
+//  process_it = false;
+//  // now turn on interrupts
+//  SPI.attachInterrupt();
+
+  //Set up LEDS
   if (NUM_LEDS_H > 0) FastLED.addLeds<MODEL, LEDS_PIN_0, GRB>(leds[0], NUM_LEDS_V);
   if (NUM_LEDS_H > 1) FastLED.addLeds<MODEL, LEDS_PIN_1, GRB>(leds[1], NUM_LEDS_V);
   if (NUM_LEDS_H > 2) FastLED.addLeds<MODEL, LEDS_PIN_2, GRB>(leds[2], NUM_LEDS_V);
@@ -107,6 +130,23 @@ void setup() {
   }
   //setPaletteNES();
 }
+
+//// SPI interrupt routine
+//ISR (SPI_STC_vect) {
+//  byte c = SPDR;  // grab byte from SPI Data Register
+//
+//  // add to buffer if room
+//  if (spi_pos < sizeof data) {
+//    data[spi_pos++] = c;
+//
+//    // example: newline means time to process buffer
+//    //if (c == '\n')
+//    //  process_it = true;
+//    if (spi_pos == (NUM_BYTES_VSTREAM-1))
+//      process_it = true;
+//
+//  } // end of room available
+//} // end of interrupt routine SPI_STC_vect
 
 void checkPoti() {
   cspeed = analogRead(POTI_PIN_0);
@@ -161,19 +201,15 @@ void loop() {
 
   //mode - video stream: 25 frames per second with 6 bit/px
   if (mode == 3) {
-    //if (Serial.available()) {
-    //    int got = Serial.readBytes(data, NUM_BYTES_VSTREAM);
-    //    if ( got == NUM_BYTES_VSTREAM ) {
-    //      digitalWrite(FEEDBACK_PIN_1, LOW);
-    //      digitalWrite(FEEDBACK_PIN_2, HIGH);
-    //    } else {
-    //      digitalWrite(FEEDBACK_PIN_1, HIGH);
-    //      digitalWrite(FEEDBACK_PIN_2, LOW);
-    //    }
-    //}
-    //Serial.readBytes(data, NUM_BYTES_VSTREAM);
-    Serial.print("3");
-    if (Serial.readBytes(data, NUM_BYTES_VSTREAM) == NUM_BYTES_VSTREAM) {
+    // Communication via UART:
+    Serial1.print("3");
+    if (Serial1.readBytes(data, NUM_BYTES_VSTREAM) == NUM_BYTES_VSTREAM) {
+    // UART done.
+    // Communication via SPI:
+    //if (process_it) {
+      //data[spi_pos] = 0;
+      //Serial.println(String(data[0]));
+      // SPI done.
       int k = 0;
       for (int i = 0; i < NUM_LEDS_H; i++) {
         for (int j = 0; j < NUM_LEDS_V; j += 4) {
@@ -189,6 +225,10 @@ void loop() {
         }
       }
       state = 1;
+      // Communication via SPI:
+      //spi_pos = 0;
+      //process_it = false;
+      // SPI done.
     }
     else {
       if (state != 0) {
@@ -204,15 +244,17 @@ void loop() {
         }
       }
     }
-    Serial.flush();
+    Serial1.flush();
     waitingTime = WAITTIME_VSTREAM;
   }
 
-  //mode - image stream: one frames with 24 bit/px (at max every 80ms)
+  //mode - image stream: one frame with 24 bit/px (at max every 1000ms)
   else if (mode == 2) {
-    Serial.print("2");
+    Serial1.print("2");
+    if (Serial1.readBytes(dataImage, NUM_BYTES_ISTREAM) == NUM_BYTES_ISTREAM) {
+    }
     //TODO
-    Serial.flush();
+    Serial1.flush();
     waitingTime = WAITTIME_ISTREAM;
   }
 
@@ -292,15 +334,15 @@ void loop() {
     //delay(cspeed);
   }
   if (DEBUG_MODE) {
-    Serial.print("time proc/show (mode: ");
-    Serial.print(mode); Serial.print(", submode: "); Serial.print(submode[mode]); Serial.print("): ");
-    Serial.print(elapsedTime);
+    Serial1.print("time proc/show (mode: ");
+    Serial1.print(mode); Serial1.print(", submode: "); Serial1.print(submode[mode]); Serial1.print("): ");
+    Serial1.print(elapsedTime);
   }
   FastLED.show();
   if (DEBUG_MODE) {
-    Serial.print("/");
-    Serial.println(elapsedTime);
-    Serial.flush();
+    Serial1.print("/");
+    Serial1.println(elapsedTime);
+    Serial1.flush();
   }
   timedDelay(waitingTime);
 }
