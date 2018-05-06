@@ -1,3 +1,4 @@
+import os
 import argparse
 import numpy as np
 from time import sleep
@@ -8,6 +9,8 @@ from pyv4l2.control import Control
 
 from encoding import UYVY_RAW2RGB_PIL
 from visualization import send_visdom
+from cropping import extract_single_player_area
+from cropping import extract_colours
 
 parser = argparse.ArgumentParser()
 
@@ -19,14 +22,26 @@ parser.add_argument('--visdom', action='store_true')
 parser.add_argument('--device', type=str, default='/dev/video1')
 
 args = parser.parse_args()
-frame = Frame(args.device)
 
 w = int(args.width // args.scale)
 h = int(args.height // args.scale)
 
+os.system('v4l2-ctl -d {device} --set-fmt-video width={w},height={h}'.format(
+    device=args.device, w=w, h=h))
+
+frame = Frame(args.device)
+
 if args.visdom:
     import visdom
     vis = visdom.Visdom(server=args.visdom_server)
+
+
+def send_pi(img):
+   area = extract_single_player_area(img)
+   colours = extract_colours(area)
+
+   if args.visdom:
+       send_visdom(vis, colours.convert('RGBA'), win='crop img')
 
 while True:
     time_in = time()
@@ -40,7 +55,9 @@ while True:
     #import pdb; pdb.set_trace()
 
     if args.visdom:
-        send_visdom(vis, img.convert('RGBA'), win='foo')
+        send_visdom(vis, img.convert('RGBA'), win='cap img')
+
+    send_pi(img)
 
     time_out = time()
 
