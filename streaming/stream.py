@@ -1,3 +1,4 @@
+import argparse
 import numpy as np
 from time import sleep
 from time import time
@@ -6,35 +7,26 @@ from pyv4l2.frame import Frame
 from pyv4l2.control import Control
 
 from encoding import UYVY_RAW2RGB_PIL
+from visualization import send_visdom
 
-frame = Frame('/dev/video1')
+parser = argparse.ArgumentParser()
 
-import visdom
-vis = visdom.Visdom()
+parser.add_argument('--width', type=int, default=720)
+parser.add_argument('--height', type=int, default=576)
+parser.add_argument('--scale', type=float, default=1.)
+parser.add_argument('--visdom-server', type=str, default='http://localhost')
+parser.add_argument('--visdom', action='store_true')
+parser.add_argument('--device', type=str, default='/dev/video1')
 
-def send(im, win=None, env=None, opts=None):
-    from six import BytesIO
-    import base64 as b64
+args = parser.parse_args()
+frame = Frame(args.device)
 
-    opts = {} if opts is None else opts
-    buf = BytesIO()
-    im.save(buf, format='PNG')
-    b64encoded = b64.b64encode(buf.getvalue()).decode('utf-8')
+w = int(args.width // args.scale)
+h = int(args.height // args.scale)
 
-    data = [{
-        'content': {
-            'src': 'data:image/png;base64,' + b64encoded,
-            'caption': opts.get('caption'),
-        },
-        'type': 'image',
-    }]
-
-    return vis._send({
-        'data': data,
-        'win': win,
-        'eid': env,
-        'opts': opts,
-    })
+if args.visdom:
+    import visdom
+    vis = visdom.Visdom(server=args.visdom_server)
 
 while True:
     time_in = time()
@@ -43,14 +35,14 @@ while True:
     data = np.array(list(frame_data), dtype='uint8')
     time_cap = time()
 
-    img = UYVY_RAW2RGB_PIL(data, 720, 576)
+    img = UYVY_RAW2RGB_PIL(data, w, h)
 
-    #vis.image(np.array(img).transpose(2, 0, 1), win='foo')
-    #send(img.convert('RGBA'), win='foo')
-    #img.convert('RGBA').save('foo.png', 'png')
+    #import pdb; pdb.set_trace()
+
+    if args.visdom:
+        send_visdom(vis, img.convert('RGBA'), win='foo')
+
     time_out = time()
 
     print('sent image, time image: {}, time cap: {}'.format(
         (time_out - time_in), (time_cap - time_in)))
-
-    sleep(12 / 60)
