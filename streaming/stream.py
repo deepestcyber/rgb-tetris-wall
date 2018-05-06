@@ -37,11 +37,21 @@ if args.visdom:
 
 
 def send_pi(img):
-   area = extract_single_player_area(img)
-   colours = extract_colours(area)
+    x_tl = 270/720 * img.width
+    y_tl = 152/576 * img.height
+    x_br = 475/720 * img.width
+    y_br = 474/576 * img.height
+    rect = (x_tl, y_tl, x_br, y_br)
 
-   if args.visdom:
-       send_visdom(vis, colours.convert('RGBA'), win='crop img')
+    area = extract_single_player_area(img, rect)
+
+    if args.visdom:
+        send_visdom(vis, area.convert('RGBA'), win='crop img')
+
+    colours = extract_colours(area)
+
+    if args.visdom:
+        send_visdom(vis, colours.convert('RGBA'), win='crop color img')
 
 while True:
     time_in = time()
