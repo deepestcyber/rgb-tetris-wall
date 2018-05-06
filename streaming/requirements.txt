@@ -1,25 +1,2 @@
-Package         Version   Location                                                 
---------------- --------- ---------------------------------------------------------
-certifi         2018.4.16 
-chardet         3.0.4     
-cycler          0.10.0    
-idna            2.6       
-kiwisolver      1.0.1     
-matplotlib      2.2.2     
-numpy           1.14.3    
-Pillow          5.1.0     
-pip             10.0.1    
-pkg-resources   0.0.0     
-pyparsing       2.2.0     
-python-dateutil 2.7.2     
-pytz            2018.4    
-pyv4l2          1.0.2     /home/nemo/Code/deepcyber/rgb-tetris-wall/download/pyv4l2
-pyzmq           17.0.0    
-requests        2.18.4    
-setuptools      39.1.0    
-six             1.11.0    
-torchfile       0.1.0     
-tornado         5.0.2     
-urllib3         1.22      
-visdom          0.1.7     
-wheel           0.31.0    
+Pillow
+pyv4l2
