@@ -33,7 +33,7 @@ while True:
     timestart = datetime.datetime.now()
 
     #data_read = s.read(1)
-    (num_bytes, data_read) = pi.spi_read(spi, 1)
+    (num_bytes, adata_read) = pi.spi_read(spi, 1)
     #data_read = int(data_read)
     # mode - video stream: 25 frames per second with 6 bit/px
     if (True or data_read==3):
