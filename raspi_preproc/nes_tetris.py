@@ -1,12 +1,15 @@
 from PIL import Image
 
+_FORMAT = "HSV"
+
 class Nes_tetris:
+
 
     def __init__(self, _num_leds_h=16, _num_leds_v=24, _gray=64):
         self.num_h = _num_leds_h
         self.num_v = _num_leds_v
         self.gray = _gray
-        self.img_leds = Image.new("RGB", (_num_leds_h, _num_leds_v), 0)
+        self.img_leds = Image.new(_FORMAT, (_num_leds_h, _num_leds_v), 0)
 
         # frame play area
         for y in range(2, 24):
@@ -20,8 +23,65 @@ class Nes_tetris:
         for x in range(12, 16):
             self.img_leds.putpixel((x, 10), _gray)
             self.img_leds.putpixel((x, 15), _gray)
+        # score/lines/level areas
+        for x in range(12, 16):
+            self.img_leds.putpixel((x, 2), _gray)
+            self.img_leds.putpixel((x, 23), _gray)
 
         return
+
+
+    def is_pix_white(self, pix):
+        #if (pix[0] and pix[1] and pix[2]) >= 128: #RGB
+        if (pix[2]) >= 128: #HSV
+                return True
+        return False
+
+
+    def is_pix_not_black(self, pix):
+        #if (pix[0] or pix[1] or pix[2]) >= 20: #RGB
+        if (pix[2]) >= 20: #HSV
+                return True
+        return False
+
+
+    def get_number(self, img):
+        #img.save("debug.png", "PNG")
+        number = 0
+
+        #read
+        if not self.is_pix_white(img.getpixel((5, 2))):
+            if self.is_pix_white(img.getpixel((1, 1))):
+                if self.is_pix_white(img.getpixel((7, 1))):
+                    number = 7
+                else:
+                    number = 5
+            elif self.is_pix_white(img.getpixel((1, 4))):
+                if self.is_pix_white(img.getpixel((7, 3))):
+                    number = 8
+                else:
+                    number = 6
+            else:
+                if self.is_pix_white(img.getpixel((7, 7))):
+                    number = 2
+                else:
+                    number = 9
+        else:
+            if self.is_pix_white(img.getpixel((5, 6))):
+                if self.is_pix_white(img.getpixel((7, 7))):
+                    number = 1
+                else:
+                    number = 4
+            else:
+                if self.is_pix_white(img.getpixel((7, 1))):
+                    number = 3
+                else:
+                    number = 0
+
+        #print("debug number:", str(number))
+        #write
+
+        return number
 
 
     def extract_single_player_area(im, area=None):
@@ -40,12 +100,6 @@ class Nes_tetris:
                 self.img_leds.putpixel((1 + x, 3 + y), pix)
 
         return
-
-
-    def is_pix_not_black(self, pix):
-        if (pix[0] or pix[1] or pix[2]) >= 20:
-            return True
-        return False
 
 
     def extract_next_block(self, img):
@@ -116,6 +170,8 @@ class Nes_tetris:
                 + self.get_number(img.crop((40, 0, 40 + 9, 9)))
 
         #write
+        for i in range(min(int(score/12500), 32)):
+            self.img_leds.putpixel((0 + int(i/2), 0 + i%2), (max(186-i*6, 0), 255, 128))
 
 
     def extract_level(self, img):
@@ -124,6 +180,8 @@ class Nes_tetris:
                 + 10 * self.get_number(img.crop((0, 0, 9, 9))) \
                 + self.get_number(img.crop((8, 0, 17, 9)))
         #write
+        for i in range(min(level+1,28)):
+            self.img_leds.putpixel((12 + int(i/7), 16 + i%7), (max(180-i*6, 0), 255, 128))
 
 
     def extract_lines(self, img):
@@ -133,45 +191,8 @@ class Nes_tetris:
                 + 10 * self.get_number(img.crop((8, 0, 17, 9))) \
                 + self.get_number(img.crop((16, 0, 25, 9)))
         #write
-
-
-    def get_number(self, img):
-        #img.save("debug.png", "PNG")
-        number = 0
-
-        #read
-        if not self.is_pix_not_black(img.getpixel((5, 2))):
-            if self.is_pix_not_black(img.getpixel((1, 1))):
-                if self.is_pix_not_black(img.getpixel((7, 1))):
-                    number = 7
-                else:
-                    number = 5
-            elif self.is_pix_not_black(img.getpixel((1, 4))):
-                if self.is_pix_not_black(img.getpixel((7, 3))):
-                    number = 8
-                else:
-                    number = 6
-            else:
-                if self.is_pix_not_black(img.getpixel((7, 7))):
-                    number = 2
-                else:
-                    number = 9
-        else:
-            if self.is_pix_not_black(img.getpixel((5, 6))):
-                if self.is_pix_not_black(img.getpixel((7, 7))):
-                    number = 1
-                else:
-                    number = 4
-            else:
-                if self.is_pix_not_black(img.getpixel((7, 1))):
-                    number = 3
-                else:
-                    number = 0
-
-        #print("debug number:", str(number))
-        #write
-
-        return number
+        for i in range(min(int(lines/10)+1,28)):
+            self.img_leds.putpixel((12 + int(i/7), 3 + i%7), (max(180-i*6, 0), 255, 128))
 
 
     def transform_frame(self, img):
@@ -194,9 +215,10 @@ class Nes_tetris:
 
 #for debug
 if __name__ == "__main__":
-    im = Image.open("../streaming/nes.png").convert("RGB")
+    im = Image.open("../streaming/nes4.png").convert(_FORMAT)
     gray = im.getpixel((6,6))
+    print("debug gray", gray)
     game = Nes_tetris(_gray=gray)
-    leds = game.transform_frame(im)
+    leds = game.transform_frame(im).convert("RGB")
     leds.save("leds.png", "PNG")
 
