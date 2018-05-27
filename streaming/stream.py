@@ -7,10 +7,10 @@ from time import time
 from pyv4l2.frame import Frame
 from pyv4l2.control import Control
 
-from encoding import UYVY_RAW2RGB_PIL
-from visualization import send_visdom
-from cropping import extract_single_player_area
-from cropping import extract_colours
+from lib.encoding import UYVY_RAW2RGB_PIL
+from lib.visualization import send_visdom
+from lib.cropping import extract_single_player_area
+from lib.cropping import extract_colours
 
 parser = argparse.ArgumentParser()
 
