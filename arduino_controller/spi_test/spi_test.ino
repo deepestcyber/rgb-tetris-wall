@@ -1,14 +1,14 @@
 
 #include <SPI.h>
 
-char buf [288];
+#define BUFSZ 288
+char buf [BUFSZ];
 volatile byte pos;
-volatile boolean process_it;
+volatile boolean processing;
 int cnt = 0;
+const int SYNC_PIN = 47;
 
 void setup() {
-  // put your setup code here, to run once:
-
   Serial.begin(115200);
   
   // turn on SPI in slave mode
@@ -16,10 +16,11 @@ void setup() {
 
   // have to send on master in, *slave out*
   pinMode(MISO, OUTPUT);
+  pinMode(SYNC_PIN, OUTPUT);
 
   // get ready for an interrupt 
-  pos = 0;   // buffer empty
-  process_it = false;
+  pos = 0;
+  processing = false;
 
   // now turn on interrupts
   SPI.attachInterrupt();
@@ -28,37 +29,58 @@ void setup() {
   delay(100);
 }
 
-// SPI interrupt routine
+volatile bool foo = false;
+
 ISR (SPI_STC_vect)
 {
-byte c = SPDR;  // grab byte from SPI Data Register
+  byte c = SPDR;  // grab byte from SPI Data Register
 
-  // add to buffer if room
-  if (pos < sizeof buf)
-    {
-    buf [pos++] = c;
+  if (processing) {
+    return;
+  }
 
-    // example: newline means time to process buffer
-    if (c == '\n')
-      process_it = true;
+  digitalWrite(SYNC_PIN, LOW);
+  //digitalWrite(13, LOW);
 
-    }  // end of room available
-}  // end of interrupt routine SPI_STC_vect
+  if (c == '\n') {
+    processing = true;
+    return;
+  }
 
-// main loop - wait for flag set in interrupt routine
+  if (pos < BUFSZ) {
+    buf[pos++] = c;
+  }
+}
+
+
 void loop (void)
 {
   int i, c;
-  //delay(1);
-  if (process_it)
-  { buf[pos]=0;
-    if (cnt == 0)
-    {
-      Serial.println(buf);
+  
+  if (processing) {
+    /*
+    if (!foo) {
+      digitalWrite(13, HIGH);
+      foo = !foo;
+    } else {
+      digitalWrite(13, LOW);
+      foo = !foo;
     }
+    */
+    
+    buf[pos] = 0;
+    if (cnt == 0) {
+      Serial.println(pos);
+    }
+    
     pos = 0;
-    cnt = (cnt+1)%256;
-    process_it = false;
-  }  // end of flag set
-}  // end of loop
+    cnt = (cnt + 1) % 256;
+
+    delay(12);
+    digitalWrite(SYNC_PIN, HIGH);
+    //digitalWrite(13, HIGH);
+
+    processing = false;
+  }
+}
 
