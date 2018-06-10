@@ -44,7 +44,7 @@
 #define NUM_FPS_VSTREAM 50
 #define WAITTIME_VSTREAM 40 //20 1000/NUM_FRAMES_VSTREAM
 #define WAITTIME_ISTREAM 1000 //20 1000/NUM_FRAMES_VSTREAM
-#define NUM_BYTES_VSTREAM 384 // 288 //288 //NUM_LEDS_H*NUM_LEDS_V*NUM_BITS_VSTREAM/8;
+#define NUM_BYTES_VSTREAM 1152
 #define NUM_BYTES_ISTREAM NUM_LEDS_H*NUM_LEDS_V*3
 
 CRGB leds[NUM_LEDS_H][NUM_LEDS_V];
@@ -70,22 +70,14 @@ int state = 0;
 
 byte data[NUM_BYTES_VSTREAM];
 byte dataImage[NUM_BYTES_ISTREAM];
-//uint8_t data[NUM_BYTES_VSTREAM];
-//uint8_t dataImage[NUM_BYTES_ISTREAM];
 // for SPI:
 volatile int spi_pos;
 volatile boolean process_it;
 
 void setup() {
-  for (int i = 0; i < NUM_BUTTONS; i++) {
-    buttonState[i] = 0;
-    lastButtonState[i] = 0;
-  }
-
   //  Communication via UART
   // Use RX1 (18) & TX1 (19)!!!
   Serial.begin(115200); //57600 115200 230400
-  //Serial1.setTimeout(WAITTIME_VSTREAM); //ms 40 1000
 
   // turn on SPI in slave mode
   SPCR |= bit (SPE);
@@ -102,22 +94,22 @@ void setup() {
   SPI.attachInterrupt();
 
   //Set up LEDS
-  if (NUM_LEDS_H > 0) FastLED.addLeds<MODEL, LEDS_PIN_0, GRB>(leds[0], NUM_LEDS_V);
-  if (NUM_LEDS_H > 1) FastLED.addLeds<MODEL, LEDS_PIN_1, GRB>(leds[1], NUM_LEDS_V);
-  if (NUM_LEDS_H > 2) FastLED.addLeds<MODEL, LEDS_PIN_2, GRB>(leds[2], NUM_LEDS_V);
-  if (NUM_LEDS_H > 3) FastLED.addLeds<MODEL, LEDS_PIN_3, GRB>(leds[3], NUM_LEDS_V);
-  if (NUM_LEDS_H > 4) FastLED.addLeds<MODEL, LEDS_PIN_4, GRB>(leds[4], NUM_LEDS_V);
-  if (NUM_LEDS_H > 5) FastLED.addLeds<MODEL, LEDS_PIN_5, GRB>(leds[5], NUM_LEDS_V);
-  if (NUM_LEDS_H > 6) FastLED.addLeds<MODEL, LEDS_PIN_6, GRB>(leds[6], NUM_LEDS_V);
-  if (NUM_LEDS_H > 7) FastLED.addLeds<MODEL, LEDS_PIN_7, GRB>(leds[7], NUM_LEDS_V);
-  if (NUM_LEDS_H > 8) FastLED.addLeds<MODEL, LEDS_PIN_8, GRB>(leds[8], NUM_LEDS_V);
-  if (NUM_LEDS_H > 9) FastLED.addLeds<MODEL, LEDS_PIN_9, GRB>(leds[9], NUM_LEDS_V);
-  if (NUM_LEDS_H > 10) FastLED.addLeds<MODEL, LEDS_PIN_10, GRB>(leds[10], NUM_LEDS_V);
-  if (NUM_LEDS_H > 11) FastLED.addLeds<MODEL, LEDS_PIN_11, GRB>(leds[11], NUM_LEDS_V);
-  if (NUM_LEDS_H > 12) FastLED.addLeds<MODEL, LEDS_PIN_12, GRB>(leds[12], NUM_LEDS_V);
-  if (NUM_LEDS_H > 13) FastLED.addLeds<MODEL, LEDS_PIN_13, GRB>(leds[13], NUM_LEDS_V);
-  if (NUM_LEDS_H > 14) FastLED.addLeds<MODEL, LEDS_PIN_14, GRB>(leds[14], NUM_LEDS_V);
-  if (NUM_LEDS_H > 15) FastLED.addLeds<MODEL, LEDS_PIN_15, GRB>(leds[15], NUM_LEDS_V);
+  if (NUM_LEDS_H > 0) FastLED.addLeds<MODEL, LEDS_PIN_0, GRB>(leds[0], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 1) FastLED.addLeds<MODEL, LEDS_PIN_1, GRB>(leds[1], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 2) FastLED.addLeds<MODEL, LEDS_PIN_2, GRB>(leds[2], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 3) FastLED.addLeds<MODEL, LEDS_PIN_3, GRB>(leds[3], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 4) FastLED.addLeds<MODEL, LEDS_PIN_4, GRB>(leds[4], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 5) FastLED.addLeds<MODEL, LEDS_PIN_5, GRB>(leds[5], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 6) FastLED.addLeds<MODEL, LEDS_PIN_6, GRB>(leds[6], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 7) FastLED.addLeds<MODEL, LEDS_PIN_7, GRB>(leds[7], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 8) FastLED.addLeds<MODEL, LEDS_PIN_8, GRB>(leds[8], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 9) FastLED.addLeds<MODEL, LEDS_PIN_9, GRB>(leds[9], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 10) FastLED.addLeds<MODEL, LEDS_PIN_10, GRB>(leds[10], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 11) FastLED.addLeds<MODEL, LEDS_PIN_11, GRB>(leds[11], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 12) FastLED.addLeds<MODEL, LEDS_PIN_12, GRB>(leds[12], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 13) FastLED.addLeds<MODEL, LEDS_PIN_13, GRB>(leds[13], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 14) FastLED.addLeds<MODEL, LEDS_PIN_14, GRB>(leds[14], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
+  if (NUM_LEDS_H > 15) FastLED.addLeds<MODEL, LEDS_PIN_15, GRB>(leds[15], NUM_LEDS_V).setCorrection(TypicalLEDStrip);
 
   for (int i = 0; i < NUM_BYTES_VSTREAM; i++) {
     data[i] = 0;
@@ -127,6 +119,8 @@ void setup() {
   delay(100);
 }
 
+bool sync_is_high = true;
+
 ISR (SPI_STC_vect)
 {
   byte c = SPDR;  // grab byte from SPI Data Register
@@ -135,8 +129,10 @@ ISR (SPI_STC_vect)
     return;
   }
 
-  digitalWrite(SYNC_PIN, LOW);
-  //digitalWrite(13, LOW);
+  if (sync_is_high) {
+    digitalWrite(SYNC_PIN, LOW);
+    sync_is_high = false;
+  }
 
   if (spi_pos < (NUM_BYTES_VSTREAM-1)) {
     data[spi_pos++] = c;
@@ -145,15 +141,28 @@ ISR (SPI_STC_vect)
   }
 }
 
+#define RGB_ENCODING 1
+
 void loop() {
   if (process_it) {
     data[spi_pos] = 0;
-    int k = 0;
-    for (int i = 0; i < NUM_LEDS_H; i++) {
-      for (int j = 0; j < NUM_LEDS_V; j += 1) {
-        leds[i][j] = CHSV(data[i * NUM_LEDS_H + j], 255, valueb[brightness][3]);
+#ifdef RGB_ENCODING
+    uint8_t r, g, b;
+    for (int y = 0; y < NUM_LEDS_V; y++) {
+      for (int x = 0; x < NUM_LEDS_H; x++) {
+        r = data[y * NUM_LEDS_H * 3 + x * 3 + 0];
+        g = data[y * NUM_LEDS_H * 3 + x * 3 + 1];
+        b = data[y * NUM_LEDS_H * 3 + x * 3 + 2];
+        leds[x][y] = CRGB(r, g, b);
       }
     }
+#else
+    for (int i = 0; i < NUM_LEDS_H; i++) {
+      for (int j = 0; j < NUM_LEDS_V; j += 1) {
+        leds[i][j] = CHSV(data[i * NUM_LEDS_V + j], 255, valueb[brightness][3]);
+      }
+    }
+#endif
     state = 1;
     spi_pos = 0;
 
@@ -161,6 +170,7 @@ void loop() {
 
     process_it = false;
     digitalWrite(SYNC_PIN, HIGH);
+    sync_is_high = true;
   }
 }
 
