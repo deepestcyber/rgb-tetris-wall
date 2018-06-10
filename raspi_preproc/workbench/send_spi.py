@@ -23,7 +23,7 @@ if not pi.connected:
     exit()
 
 #spi = pi.spi_open(0, 115200)
-spi = pi.spi_open(0, 800000, 0)
+spi = pi.spi_open(0, 750000, 0)
 
 
 counter = 0
@@ -36,7 +36,7 @@ SYNC_PIN = 18 # GPIO pin numbers
 pi.set_mode(SYNC_PIN, pigpio.INPUT)
 
 import PIL.Image
-ref_img = PIL.Image.open('../mario.png').convert('RGB')
+ref_img = PIL.Image.open('../mario.png').convert('HSV')
 #ref_img = PIL.Image.open('d.png').convert('RGB')
 
 for j in range(NUM_LEDS_V):
@@ -55,9 +55,9 @@ while True:
     for x in range(NUM_LEDS_H):
         for y in range(NUM_LEDS_V):
             #leds[x, y] = 12
-            leds[x, y] = (6*(cnt-x+y) % 64, 4*(cnt-x+y) % 64, 2*(cnt-x+y) % 64)
-            #px = ref_img.getpixel((x, y))
-            #leds[x, NUM_LEDS_V - y - 1] = px
+            #leds[x, y] = (6*(cnt-x+y) % 64, 4*(cnt-x+y) % 64, 2*(cnt-x+y) % 64)
+            px = ref_img.getpixel((x, y))
+            leds[x, NUM_LEDS_V - y - 1] = px
     if (delaycounter%delay == 0):
         counter=(counter+1)%NUM_LEDS_H
     delaycounter=(delaycounter+1)%delay
