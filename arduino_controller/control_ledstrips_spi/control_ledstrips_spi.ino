@@ -134,18 +134,14 @@ ISR (SPI_STC_vect)
     sync_is_high = false;
   }
 
-  if (spi_pos < (NUM_BYTES_VSTREAM-1)) {
-    data[spi_pos++] = c;
-  } else {
-    process_it = true;
-  }
+  data[spi_pos++] = c;
+  process_it = (spi_pos == NUM_BYTES_VSTREAM);
 }
 
 #define RGB_ENCODING 1
 
 void loop() {
   if (process_it) {
-    data[spi_pos] = SPDR;
 
 #ifdef RGB_ENCODING
     uint8_t r, g, b;
