@@ -66,7 +66,7 @@ const int valueb [5][4] = {{3, 9, 27, 81}, {4, 12, 36, 108}, {5, 15, 45, 135}, {
 int state = 0;
 
 //TODO: define a good color palette - perhaps like NES?
-extern const CHSV currentPalette [64] = {CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216)};
+//extern const CHSV currentPalette [64] = {CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216), CHSV(255, 255, 8), CHSV(255, 255, 24), CHSV(255, 255, 72), CHSV(255, 255, 216)};
 
 byte data[NUM_BYTES_VSTREAM];
 byte dataImage[NUM_BYTES_ISTREAM];
@@ -81,13 +81,6 @@ void setup() {
     buttonState[i] = 0;
     lastButtonState[i] = 0;
   }
-  pinMode(BUTTON_PIN_0, INPUT_PULLUP);
-  pinMode(BUTTON_PIN_1, INPUT_PULLUP);
-  pinMode(BUTTON_PIN_2, INPUT_PULLUP);
-  pinMode(BUTTON_PIN_3, INPUT_PULLUP);
-  pinMode(BUTTON_PIN_4, INPUT_PULLUP);
-  pinMode(BUTTON_PIN_5, INPUT_PULLUP);
-  pinMode(BUTTON_PIN_6, INPUT_PULLUP);
 
   //  Communication via UART
   // Use RX1 (18) & TX1 (19)!!!
@@ -134,18 +127,6 @@ void setup() {
   delay(100);
 }
 
-/*
- * Things to check:
- * 1. check bits 3 and 2 in SPCR
- *    (should be zero => (CPOL=0, CPHA=0) i.e. mode=0)
- * 2. do not use FastLED.show(), just print result over serial
- * 3. do not setup LEDs, just print result over serial
- * 4. do not import FastLED, just print result over serial
- *
- * Possible quick fixes:
- * - delayMicroseconds(10); after FastLED.show()
- */
-
 ISR (SPI_STC_vect)
 {
   byte c = SPDR;  // grab byte from SPI Data Register
@@ -157,9 +138,7 @@ ISR (SPI_STC_vect)
   digitalWrite(SYNC_PIN, LOW);
   //digitalWrite(13, LOW);
 
-  Serial.println(spi_pos);
-
-  if (spi_pos < NUM_BYTES_VSTREAM) {
+  if (spi_pos < (NUM_BYTES_VSTREAM-1)) {
     data[spi_pos++] = c;
   } else {
     process_it = true;
@@ -167,38 +146,21 @@ ISR (SPI_STC_vect)
 }
 
 void loop() {
-  if (true || mode == 3) {
-    if (process_it) {
-      data[spi_pos] = 0;
-      int k = 0;
-      for (int i = 0; i < NUM_LEDS_H; i++) {
-        for (int j = 0; j < NUM_LEDS_V; j += 1) {
-          leds[i][j] = CHSV(data[i * NUM_LEDS_H + j], 255, valueb[brightness][3]);
-        }
-      }
-      state = 1;
-      spi_pos = 0;
-
-      FastLED.show();
-
-      process_it = false;
-      digitalWrite(SYNC_PIN, HIGH);
-
-    } else {
-      if (state != 0) {
-        state += 1;
-        if (state >= 42) {
-          //just timeout at some point and turn of all leds
-          for (int i = 0; i < NUM_LEDS_H; i++) {
-            for (int j = 0; j < NUM_LEDS_V; j++) {
-              leds[i][NUM_LEDS_V - 1 - j] = CRGB(0, 0, 0);
-            }
-          }
-          state = 0;
-        }
+  if (process_it) {
+    data[spi_pos] = 0;
+    int k = 0;
+    for (int i = 0; i < NUM_LEDS_H; i++) {
+      for (int j = 0; j < NUM_LEDS_V; j += 1) {
+        leds[i][j] = CHSV(data[i * NUM_LEDS_H + j], 255, valueb[brightness][3]);
       }
     }
-    waitingTime = WAITTIME_VSTREAM;
+    state = 1;
+    spi_pos = 0;
+
+    FastLED.show();
+
+    process_it = false;
+    digitalWrite(SYNC_PIN, HIGH);
   }
 }
 
