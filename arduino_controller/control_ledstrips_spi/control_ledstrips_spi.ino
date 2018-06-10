@@ -145,7 +145,8 @@ ISR (SPI_STC_vect)
 
 void loop() {
   if (process_it) {
-    data[spi_pos] = 0;
+    data[spi_pos] = SPDR;
+
 #ifdef RGB_ENCODING
     uint8_t r, g, b;
     for (int y = 0; y < NUM_LEDS_V; y++) {
