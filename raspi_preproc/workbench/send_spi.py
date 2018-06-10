@@ -54,10 +54,10 @@ while True:
 
     for x in range(NUM_LEDS_H):
         for y in range(NUM_LEDS_V):
-            #leds[i][j] = 12
-            #leds[i][j] = (4*(cnt-i+j))%64
-            px = ref_img.getpixel((x, y))
-            leds[x, NUM_LEDS_V - y - 1] = px
+            #leds[x, y] = 12
+            leds[x, y] = (6*(cnt-x+y) % 64, 4*(cnt-x+y) % 64, 2*(cnt-x+y) % 64)
+            #px = ref_img.getpixel((x, y))
+            #leds[x, NUM_LEDS_V - y - 1] = px
     if (delaycounter%delay == 0):
         counter=(counter+1)%NUM_LEDS_H
     delaycounter=(delaycounter+1)%delay
