@@ -13,12 +13,17 @@ def extract_square(im, coords):
     return im.crop(square)
 
 def extract_colours(area):
+    print(area)
     a = area.crop((0, 0, 10, 20)).copy()
+    dx = area.width / 10
+    dy = area.height / 20
+    print(dx, dy)
     for y in range(20):
         for x in range(10):
-            at = (x*8 + 3, y*8 + 3)
+            at = (int(x*dx + (dx/2)), int(y*dy + (dy/2)))
             pix = area.getpixel(at)
             a.putpixel((x, y), pix)
+    print(a)
     return a
 
 if __name__ == "__main__":
