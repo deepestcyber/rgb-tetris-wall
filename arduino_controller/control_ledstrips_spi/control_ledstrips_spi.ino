@@ -150,7 +150,7 @@ void loop() {
         r = data[y * NUM_LEDS_H * 3 + x * 3 + 0];
         g = data[y * NUM_LEDS_H * 3 + x * 3 + 1];
         b = data[y * NUM_LEDS_H * 3 + x * 3 + 2];
-        leds[x][y] = CRGB(r, g, b);
+        leds[x][y] = CHSV(r, g, b);
       }
     }
 #else
