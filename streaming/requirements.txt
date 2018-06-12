@@ -1,2 +1,4 @@
 Pillow
 pyv4l2
+six
+visdom
