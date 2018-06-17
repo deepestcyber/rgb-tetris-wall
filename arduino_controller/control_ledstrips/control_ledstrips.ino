@@ -23,20 +23,25 @@
 #define LEDS_PIN_13 13
 #define LEDS_PIN_14 20
 #define LEDS_PIN_15 21
+#define STATUS_LEDS_PIN A0
 #define FEEDBACK_PIN_1 17
 #define FEEDBACK_PIN_2 16
-#define BUTTON_PIN_0 A7 //Mode switch
-#define BUTTON_PIN_1 A8 //Decrement submode
-#define BUTTON_PIN_2 A9 //Increment submode
-#define BUTTON_PIN_3 A10 //Decrement pattern speed
-#define BUTTON_PIN_4 A11 //Increment pattern speed
-#define BUTTON_PIN_5 A12 //Decrement brightness
-#define BUTTON_PIN_6 A13 //Increment brightness
+#define BUTTON_MDP_INC A8 //Mode switch
+#define BUTTON_MDP_DEC A9 //Mode switch
+#define BUTTON_MDS_INC A10 //Decrement submode
+#define BUTTON_MDS_DEC A11 //Increment submode
+#define BUTTON_BRS_DEC A12 //Decrement brightness
+#define BUTTON_BRS_INC A13 //Increment brightness
+#define BUTTON_SPD_DEC A14 //Decrement pattern speed
+#define BUTTON_SPD_INC A15 //Increment pattern speed
+#define SWITCH_PARENTAL_LOCK A7 //Switch to turn off all buttons
 #define POTI_PIN_0 A5 //just for testing
-#define MODEL WS2812B //WS2811, WS2812b
+#define MODEL_PIXELS WS2812B //WS2811, WS2812b
+#define MODEL_STATUS WS2812B //WS2811, WS2812b
 #define NUM_LEDS_H 16 //16
 #define NUM_LEDS_V 24 //24
-#define NUM_BUTTONS 7 //7
+#define NUM_BUTTONS 8 //8
+#define NUM_STATUS_LEDS 12 //4
 #define BUTTON_WAIT 50 //time (ms) to wait for another buttoncheck
 #define NUM_POTI 1 //just for testing
 #define NUM_BITS_VSTREAM 6 //6
@@ -47,14 +52,17 @@
 #define NUM_BYTES_ISTREAM NUM_LEDS_H*NUM_LEDS_V*3
 
 CRGB leds[NUM_LEDS_H][NUM_LEDS_V];
+CRGB status_leds[NUM_STATUS_LEDS];
 
 //modes: 0 = light patterns, 1 = music patterns, 2 = image stream (24bit), 3 = video stream
-int mode = 3;
+int mode = 0;
+int modeMax = 4;
 int submode [4] = {0, 0, 0, 0};
-int submodeMax [4] = {128, 1, 1, 1}; //Used for all mode switches
+int submodeMax [4] = {64, 1, 1, 1}; //Used for all mode switches
 
 int buttonState [NUM_BUTTONS];         // current state of the button
 int lastButtonState [NUM_BUTTONS];     // previous state of the button
+int buttonsAvailable = 0; // default: parental lock enabled
 elapsedMillis elapsedTime;
 int waitingTime = 0;
 
@@ -80,13 +88,15 @@ void setup() {
     buttonState[i] = 0;
     lastButtonState[i] = 0;
   }
-  pinMode(BUTTON_PIN_0, INPUT_PULLUP);
-  pinMode(BUTTON_PIN_1, INPUT_PULLUP);
-  pinMode(BUTTON_PIN_2, INPUT_PULLUP);
-  pinMode(BUTTON_PIN_3, INPUT_PULLUP);
-  pinMode(BUTTON_PIN_4, INPUT_PULLUP);
-  pinMode(BUTTON_PIN_5, INPUT_PULLUP);
-  pinMode(BUTTON_PIN_6, INPUT_PULLUP);
+  pinMode(BUTTON_MDP_DEC, INPUT_PULLUP);
+  pinMode(BUTTON_MDP_INC, INPUT_PULLUP);
+  pinMode(BUTTON_MDS_DEC, INPUT_PULLUP);
+  pinMode(BUTTON_MDS_INC, INPUT_PULLUP);
+  pinMode(BUTTON_SPD_DEC, INPUT_PULLUP);
+  pinMode(BUTTON_SPD_INC, INPUT_PULLUP);
+  pinMode(BUTTON_BRS_DEC, INPUT_PULLUP);
+  pinMode(BUTTON_BRS_INC, INPUT_PULLUP);
+  pinMode(SWITCH_PARENTAL_LOCK, INPUT_PULLUP);
 
   //  Communication via UART
   // Use RX1 (18) & TX1 (19)!!!
@@ -108,22 +118,29 @@ void setup() {
 //  SPI.attachInterrupt();
 
   //Set up LEDS
-  if (NUM_LEDS_H > 0) FastLED.addLeds<MODEL, LEDS_PIN_0, GRB>(leds[0], NUM_LEDS_V);
-  if (NUM_LEDS_H > 1) FastLED.addLeds<MODEL, LEDS_PIN_1, GRB>(leds[1], NUM_LEDS_V);
-  if (NUM_LEDS_H > 2) FastLED.addLeds<MODEL, LEDS_PIN_2, GRB>(leds[2], NUM_LEDS_V);
-  if (NUM_LEDS_H > 3) FastLED.addLeds<MODEL, LEDS_PIN_3, GRB>(leds[3], NUM_LEDS_V);
-  if (NUM_LEDS_H > 4) FastLED.addLeds<MODEL, LEDS_PIN_4, GRB>(leds[4], NUM_LEDS_V);
-  if (NUM_LEDS_H > 5) FastLED.addLeds<MODEL, LEDS_PIN_5, GRB>(leds[5], NUM_LEDS_V);
-  if (NUM_LEDS_H > 6) FastLED.addLeds<MODEL, LEDS_PIN_6, GRB>(leds[6], NUM_LEDS_V);
-  if (NUM_LEDS_H > 7) FastLED.addLeds<MODEL, LEDS_PIN_7, GRB>(leds[7], NUM_LEDS_V);
-  if (NUM_LEDS_H > 8) FastLED.addLeds<MODEL, LEDS_PIN_8, GRB>(leds[8], NUM_LEDS_V);
-  if (NUM_LEDS_H > 9) FastLED.addLeds<MODEL, LEDS_PIN_9, GRB>(leds[9], NUM_LEDS_V);
-  if (NUM_LEDS_H > 10) FastLED.addLeds<MODEL, LEDS_PIN_10, GRB>(leds[10], NUM_LEDS_V);
-  if (NUM_LEDS_H > 11) FastLED.addLeds<MODEL, LEDS_PIN_11, GRB>(leds[11], NUM_LEDS_V);
-  if (NUM_LEDS_H > 12) FastLED.addLeds<MODEL, LEDS_PIN_12, GRB>(leds[12], NUM_LEDS_V);
-  if (NUM_LEDS_H > 13) FastLED.addLeds<MODEL, LEDS_PIN_13, GRB>(leds[13], NUM_LEDS_V);
-  if (NUM_LEDS_H > 14) FastLED.addLeds<MODEL, LEDS_PIN_14, GRB>(leds[14], NUM_LEDS_V);
-  if (NUM_LEDS_H > 15) FastLED.addLeds<MODEL, LEDS_PIN_15, GRB>(leds[15], NUM_LEDS_V);
+  if (NUM_LEDS_H > 0) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_0, GRB>(leds[0], NUM_LEDS_V);
+  if (NUM_LEDS_H > 1) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_1, GRB>(leds[1], NUM_LEDS_V);
+  if (NUM_LEDS_H > 2) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_2, GRB>(leds[2], NUM_LEDS_V);
+  if (NUM_LEDS_H > 3) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_3, GRB>(leds[3], NUM_LEDS_V);
+  if (NUM_LEDS_H > 4) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_4, GRB>(leds[4], NUM_LEDS_V);
+  if (NUM_LEDS_H > 5) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_5, GRB>(leds[5], NUM_LEDS_V);
+  if (NUM_LEDS_H > 6) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_6, GRB>(leds[6], NUM_LEDS_V);
+  if (NUM_LEDS_H > 7) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_7, GRB>(leds[7], NUM_LEDS_V);
+  if (NUM_LEDS_H > 8) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_8, GRB>(leds[8], NUM_LEDS_V);
+  if (NUM_LEDS_H > 9) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_9, GRB>(leds[9], NUM_LEDS_V);
+  if (NUM_LEDS_H > 10) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_10, GRB>(leds[10], NUM_LEDS_V);
+  if (NUM_LEDS_H > 11) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_11, GRB>(leds[11], NUM_LEDS_V);
+  if (NUM_LEDS_H > 12) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_12, GRB>(leds[12], NUM_LEDS_V);
+  if (NUM_LEDS_H > 13) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_13, GRB>(leds[13], NUM_LEDS_V);
+  if (NUM_LEDS_H > 14) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_14, GRB>(leds[14], NUM_LEDS_V);
+  if (NUM_LEDS_H > 15) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_15, GRB>(leds[15], NUM_LEDS_V);
+
+  //Set up Status LEDS
+  FastLED.addLeds<MODEL_STATUS, STATUS_LEDS_PIN, GRB>(status_leds, NUM_STATUS_LEDS);
+
+  for (int i = 0; i < NUM_STATUS_LEDS; i++) {
+    status_leds[i] = CHSV(0, 0, 0);
+  }
 
   for (int i = 0; i < NUM_BYTES_VSTREAM; i++) {
     data[i] = 0;
@@ -155,33 +172,48 @@ void checkPoti() {
 void checkButtons() {
 
   // compare the buttonState to its previous state
-  for (int i = 0; i < NUM_BUTTONS; i++) {
-    if (i == 0) buttonState[i] = digitalRead(BUTTON_PIN_0);
-    else if (i == 1) buttonState[i] = digitalRead(BUTTON_PIN_1);
-    else if (i == 2) buttonState[i] = digitalRead(BUTTON_PIN_2);
-    else if (i == 3) buttonState[i] = digitalRead(BUTTON_PIN_3);
-    else if (i == 4) buttonState[i] = digitalRead(BUTTON_PIN_4);
-    else if (i == 5) buttonState[i] = digitalRead(BUTTON_PIN_5);
-    else if (i == 6) buttonState[i] = digitalRead(BUTTON_PIN_6);
-
-    if (buttonState[i] != lastButtonState[i]) {
-      // if the state has changed, increment the counter
-      if (buttonState[i] == LOW) {
-        // if the current state is LOW then the button went from off to on:
-        if (i == 0) mode = (mode + 1) % 4;
-        else if (i == 1) submode[mode] = (submode[mode] - 1) % submodeMax[mode];
-        else if (i == 2) submode[mode] = (submode[mode] + 1) % submodeMax[mode];
-        else if (i == 3) pspeed = min(pspeed + 1, 4);
-        else if (i == 4) pspeed = max(pspeed - 1, 0);
-        else if (i == 5) brightness = max(brightness - 1, 0);
-        else if (i == 6) brightness = min(brightness + 1, 4);
-      } else {
-        // if the current state is HIGH then the button went from on to off:
-      }
-      lastButtonState[i] = buttonState[i];
-      // Delay a little bit to avoid bouncing
+  buttonsAvailable = digitalRead(SWITCH_PARENTAL_LOCK);
+  if (buttonsAvailable == LOW) {
+    for (int i = 0; i < NUM_BUTTONS; i++) {
+      if (i == 0) buttonState[i] = digitalRead(BUTTON_MDP_DEC);
+      else if (i == 1) buttonState[i] = digitalRead(BUTTON_MDP_INC);
+      else if (i == 2) buttonState[i] = digitalRead(BUTTON_MDS_DEC);
+      else if (i == 3) buttonState[i] = digitalRead(BUTTON_MDS_INC);
+      else if (i == 4) buttonState[i] = digitalRead(BUTTON_SPD_DEC);
+      else if (i == 5) buttonState[i] = digitalRead(BUTTON_SPD_INC);
+      else if (i == 6) buttonState[i] = digitalRead(BUTTON_BRS_DEC);
+      else if (i == 7) buttonState[i] = digitalRead(BUTTON_BRS_INC);
+  
+      if (buttonState[i] != lastButtonState[i]) {
+        // if the state has changed, increment the counter
+        if (buttonState[i] == LOW) {
+          // if the current state is LOW then the button went from off to on:
+          if (i == 0) mode = (mode - 1) % modeMax;
+          else if (i == 1) mode = (mode + 1) % modeMax;
+          else if (i == 2) submode[mode] = (submode[mode] - 1) % submodeMax[mode];
+          else if (i == 3) submode[mode] = (submode[mode] + 1) % submodeMax[mode];
+          else if (i == 4) pspeed = min(pspeed + 1, 4);
+          else if (i == 5) pspeed = max(pspeed - 1, 0);
+          else if (i == 6) brightness = max(brightness - 1, 0);
+          else if (i == 7) brightness = min(brightness + 1, 4);
+        } else {
+          // if the current state is HIGH then the button went from on to off:
+        }
+        lastButtonState[i] = buttonState[i];
+        // Delay a little bit to avoid bouncing
+      }    
     }
   }
+
+  //set Status LEDS:
+  if (mode == 3) status_leds[0] = CHSV(60, 255, 64);
+  else if (mode == 2) status_leds[0] = CHSV(96, 255, 64);
+  else if (mode == 1) status_leds[0] = CHSV(160, 255, 64);
+  else status_leds[0] = CHSV(0, 255, 64);
+  
+  status_leds[2] = CHSV(256/submodeMax[mode]*(submodeMax[mode]-submode[mode]-1)%256, 255, 64);
+  status_leds[4] = CHSV(200/5*(5-brightness-1)%200, 255, 64);
+  status_leds[6] = CHSV(200/5*pspeed%200, 255, 64);
 }
 
 void timedDelay(int waitingTime) {
@@ -265,9 +297,9 @@ void loop() {
 
   //mode - dynamic patterns (hardcoded) - perhaps via several sub-modes
   else { //mode == 0
-    if (submode[0] == 127) {
+    if (submode[0] == 63) {
     }
-    else if (submode[0] == 126) {
+    else if (submode[0] == 62) {
       //copy this check for creating a new pattern
     }
     else if (submode[0] == 6) {
