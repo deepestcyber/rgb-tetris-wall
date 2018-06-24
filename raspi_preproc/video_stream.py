@@ -44,8 +44,9 @@ class Video_stream:
         img = self.UYVY_RAW2RGB_PIL(data, self.w, self.h)
 
         #cut the frame to nes size (256x224) ane transform it for the leds
-        rect = (270 / 720 * img.width, 152 / 576 * img.height,
-                475 / 720 * img.width, 474 / 576 * img.height)
+        #rect = (270 / 720 * img.width, 152 / 576 * img.height,
+        #        475 / 720 * img.width, 474 / 576 * img.height)
+        rect = (41, 42, 642, 478)
         img_cut = self.game.extract_single_player_area(img, rect)
         img_leds = self.game.transform_frame(img_cut)
         self.leds = img_leds #TODO: img to array conversion
