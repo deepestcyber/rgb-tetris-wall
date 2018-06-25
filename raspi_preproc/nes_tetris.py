@@ -3,16 +3,16 @@ from PIL import ImageFilter
 
 _FORMAT = "HSV"
 
-#stream size: 642 x 478, crop from: 41, 42
 
 class NesTetris:
 
-    black_px = (0, 0, 0)
 
-    def __init__(self, _num_leds_h=16, _num_leds_v=24, _gray=64):
+    def __init__(self, _num_leds_h=16, _num_leds_v=24, _gray=(95, 7, 128)):
         self.num_h = _num_leds_h
         self.num_v = _num_leds_v
         self.gray = _gray
+        self.black = (0, 0, 0)
+
         self.img_leds = Image.new(_FORMAT, (_num_leds_h, _num_leds_v), 0)
 
         # frame play area
@@ -87,6 +87,12 @@ class NesTetris:
         return number
 
 
+    def extract_game_area(self, im, area=None):
+        if area is None:
+            area = (41, 42, 41 + 642, 42 + 478)
+        return im.crop(area)
+
+
     def extract_colours(self, img):
         #img.convert("RGB").save("debug.png", "PNG")
 
@@ -96,7 +102,7 @@ class NesTetris:
                 if self.is_pix_not_black(img.getpixel(at)):
                     pix = img.getpixel(at)
                 else:
-                    pix = self.black_px
+                    pix = self.black
                 self.img_leds.putpixel((1 + x, 3 + y), pix)
 
         return
@@ -224,7 +230,7 @@ class NesTetris:
 
 #for debug
 if __name__ == "__main__":
-    im = Image.open("../streaming/nes_cut.png").convert(_FORMAT).filter(ImageFilter.SMOOTH)
+    im = Image.open("nes_cut.png").convert(_FORMAT)
     gray = im.getpixel((6,6))
     print("debug gray", gray)
     game = NesTetris(_gray=gray)
