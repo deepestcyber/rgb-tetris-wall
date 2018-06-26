@@ -135,8 +135,8 @@ def send_visdom(vis, im, win=None, env=None, opts=None):
     })
 
 if __name__ == "__main__":
-    iterations = 250
-    is_visdom = False
+    iterations = 25000
+    is_visdom = True
     # command line:$ pyton3 -m visdom.server
     WAITTIME_VSTREAM = 0.040  # 40 ms
     stream = VideoStream()
