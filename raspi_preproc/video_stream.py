@@ -10,7 +10,7 @@ from nes_tetris import NesTetris
 """ Computational costs:
 - grab the frame: 0.4 ms
 - convert frame to YCbCr: 7 - 14 ms
-- cut game area: 
+- cut game area: 0.5 ms
 - convert YCbCr to HSV: 7 - 11 ms
 - calculate led pixels from cutted hsv img (including smooth filters):  3.5 - 4.5 ms
 overall costs: 18 - 28 ms
@@ -137,6 +137,7 @@ def send_visdom(vis, im, win=None, env=None, opts=None):
 if __name__ == "__main__":
     iterations = 250
     is_visdom = False
+    # command line:$ pyton3 -m visdom.server
     WAITTIME_VSTREAM = 0.040  # 40 ms
     stream = VideoStream()
 
@@ -172,7 +173,7 @@ if __name__ == "__main__":
         time_d = timefin - timestart_c
         time_total = time_a + time_b + time_c + time_d
         print("time_grab: {time_a}, time_conv: {time_b}, "
-              "time_cut: {time_c}, time_trans: {time_d}, "
+              "time_cut_hsv: {time_c}, time_smooth_trans: {time_d}, "
               "time_total: {time_total}, wait_t: {waittime} in ms".format(
                   time_a=time_a.microseconds / 1000,
                   time_b=time_b.microseconds / 1000,

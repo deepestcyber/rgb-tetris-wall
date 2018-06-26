@@ -151,15 +151,15 @@ class NesTetris:
 
 
     def extract_next_block(self, img):
-        #img.convert("RGB").save("debug.png", "PNG")
+        img.convert("RGB").save("debug.png", "PNG")
 
         #read
         if self.is_pix_not_black(img.getpixel((5, 18))):
             next_block = 6
             next_block_col = img.getpixel((5, 18))
-        elif self.is_pix_not_black(img.getpixel((15, 10))):
+        elif self.is_pix_not_black(img.getpixel((15, 9))):
             if self.is_pix_not_black(img.getpixel((35, 26))):
-                if self.is_pix_not_black(img.getpixel((55, 10))):
+                if self.is_pix_not_black(img.getpixel((55, 9))):
                     next_block = 0
                 else:
                     next_block = 2
@@ -168,14 +168,14 @@ class NesTetris:
                     next_block = 5
                 else:
                     next_block = 1
-            next_block_col = img.getpixel((15, 10))
+            next_block_col = img.getpixel((15, 9))
         else:
-            if self.is_pix_not_black(img.getpixel((55, 10))):
+            if self.is_pix_not_black(img.getpixel((60, 9))):
                 next_block = 4
-                next_block_col = img.getpixel((55, 10))
+                next_block_col = img.getpixel((60, 9))
             else:
                 next_block = 3
-                next_block_col = img.getpixel((45, 10))
+                next_block_col = img.getpixel((50, 9))
 
         #write
         for x in range(0, 4):
