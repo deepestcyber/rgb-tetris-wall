@@ -35,6 +35,27 @@ class NesTetris:
         return
 
 
+    def reset_areas(self):
+        # play area
+        for y in range(3, 23):
+            for x in range(1, 11):
+                self.img_leds.putpixel((x, y), self.black)
+        # next block area
+        for y in range(11, 15):
+            for x in range(12, 16):
+                self.img_leds.putpixel((x, y), self.black)
+        # lines areas
+        for y in range(3, 10):
+            for x in range(12, 16):
+                self.img_leds.putpixel((x, y), self.black)
+        # level areas
+        for y in range(16, 23):
+            for x in range(12, 16):
+                self.img_leds.putpixel((x, y), self.black)
+
+        return
+
+
     def is_pix_white(self, pix):
         #if (pix[0] and pix[1] and pix[2]) >= 128: #RGB
         if (pix[2]) >= 128: #HSV
@@ -87,6 +108,27 @@ class NesTetris:
         return number
 
 
+    def test_tetris_runnig(self, img):
+        if self.is_pix_not_black(img.getpixel((54, 59))):
+            return False
+        if self.is_pix_not_black(img.getpixel((197, 142))):
+            return False
+        if self.is_pix_not_black(img.getpixel((484, 350))):
+            return False
+        if self.is_pix_not_black(img.getpixel((536, 101))):
+            return False
+        if not self.is_pix_white(img.getpixel((546, 321))):
+            return False
+        if not self.is_pix_white(img.getpixel((370, 53))):
+            return False
+        if not self.is_pix_white(img.getpixel((67, 154))):
+            return False
+        if not self.is_pix_white(img.getpixel((109, 387))):
+            return False
+
+        return True
+
+
     def extract_game_area(self, im, area=None):
         if area is None:
             area = (41, 42, 41 + 642, 42 + 478)
@@ -136,6 +178,9 @@ class NesTetris:
                 next_block_col = img.getpixel((45, 10))
 
         #write
+        for x in range(0, 4):
+            self.img_leds.putpixel((12+x, 12), self.black)
+            self.img_leds.putpixel((12+x, 13), self.black)
         if next_block == 0:
             for x in range(0, 3):
                 self.img_leds.putpixel((12+x, 12), next_block_col)
@@ -177,10 +222,12 @@ class NesTetris:
                 + self.get_number(img.crop((102, 0, 102 + 20, 16)))
 
         #write
+        for i in range(max(int(score/12500), 0), 32):
+            self.img_leds.putpixel((0 + int(i/2), 0 + i%2), self.black)
         for i in range(min(int(score/12500), 32)):
             self.img_leds.putpixel((0 + int(i/2), 0 + i%2), (max(186-i*6, 0), 255, 128))
 
-        print("debug score", score)
+        #print("debug score", score)
 
 
     def extract_level(self, img):
@@ -190,41 +237,50 @@ class NesTetris:
                 + 10 * self.get_number(img.crop((0, 0, 20, 16))) \
                 + self.get_number(img.crop((20, 0, 40, 16)))
         #write
+        for i in range(max(level, 0), 28):
+            self.img_leds.putpixel((12 + int(i/7), 16 + i%7), self.black)
         for i in range(min(level+1,28)):
             self.img_leds.putpixel((12 + int(i/7), 16 + i%7), (max(180-i*6, 0), 255, 128))
 
-        print("debug level", level)
+        #print("debug level", level)
 
 
     def extract_lines(self, img):
-        img.convert("RGB").save("debug.png", "PNG")
+        #img.convert("RGB").save("debug.png", "PNG")
         #read
         lines = 0 \
                 + 100 * self.get_number(img.crop((0, 0, 20, 16))) \
                 + 10 * self.get_number(img.crop((20, 0, 40, 16))) \
                 + self.get_number(img.crop((41, 0, 61, 16)))
         #write
-        for i in range(min(int(lines/10)+1,28)):
+        for i in range(max(int(lines/10), 0), 28):
+            self.img_leds.putpixel((12 + int(i/7), 3 + i%7), self.black)
+        for i in range(min(int(lines/10)+1, 28)):
             self.img_leds.putpixel((12 + int(i/7), 3 + i%7), (max(180-i*6, 0), 255, 128))
 
-        print("debug lines", lines)
+        #print("debug lines", lines)
 
 
     def transform_frame(self, img):
+        # check if game is running
+        if not self.test_tetris_runnig(img):
+            self.reset_areas()
+            return self.img_leds
+
         # play area
-        self.extract_colours(img.crop((239, 93, 240 + 10 * 20, 94 + 20 * 16)))
+        self.extract_colours(img.crop((239, 93, 240 + 10 * 20, 94 + 20 * 16)).filter(ImageFilter.SMOOTH))
 
         # next block
-        self.extract_next_block(img.crop((482, 237, 482 + 81, 237 + 33)))
+        self.extract_next_block(img.crop((482, 237, 482 + 81, 237 + 33)).filter(ImageFilter.SMOOTH))
 
         # number of lines
-        self.extract_lines(img.crop((380, 45, 380 + 61, 45 + 16)))
+        self.extract_lines(img.crop((380, 45, 380 + 61, 45 + 16)).filter(ImageFilter.SMOOTH))
 
         # score
-        self.extract_score(img.crop((481, 125, 481 + 122, 125 + 16)))
+        self.extract_score(img.crop((481, 125, 481 + 122, 125 + 16)).filter(ImageFilter.SMOOTH))
 
         # number of level
-        self.extract_level(img.crop((522, 333, 522 + 40, 333 + 16)))
+        self.extract_level(img.crop((522, 333, 522 + 40, 333 + 16)).filter(ImageFilter.SMOOTH))
 
         return self.img_leds
 
