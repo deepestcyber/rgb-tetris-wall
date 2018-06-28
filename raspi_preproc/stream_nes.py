@@ -16,7 +16,7 @@ from nes_tetris import NesTetris
 overall costs: 18 - 28 ms
 """
 
-class VideoStream:
+class StreamNES:
 
     def __init__(self, _num_leds_h=16, _num_leds_v=24):
         self.num_leds_h = _num_leds_h
@@ -57,9 +57,11 @@ class VideoStream:
         #cut the frame to game size (depending on game) ane transform it for the leds
         img_game = self.game.extract_game_area(img).filter(ImageFilter.SMOOTH).convert("HSV")
         img_leds = self.game.transform_frame(img_game)
-        self.leds = img_leds #TODO: img to array conversion
+        #img to array conversion
+        self.leds = np.array(img_leds)
 
         #debug:
+        self.leds = img_leds
         #img_game.convert("RGB").save("nes_cut.png", "PNG")
         #img_leds.convert("RGB").save("leds.png", "PNG")
 
@@ -139,7 +141,7 @@ if __name__ == "__main__":
     is_visdom = False
     # command line:$ pyton3 -m visdom.server
     WAITTIME_VSTREAM = 0.040  # 40 ms
-    stream = VideoStream()
+    stream = StreamNES()
 
     visd_server = 'http://localhost'
     if is_visdom:

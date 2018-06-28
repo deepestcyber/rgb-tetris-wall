@@ -75,13 +75,13 @@ class NesTetris:
         number = 0
 
         #read
-        if not self.is_pix_white(img.getpixel((12, 4))):
+        if not self.is_pix_white(img.getpixel((12, 3))):
             if self.is_pix_white(img.getpixel((2, 2))):
                 if self.is_pix_white(img.getpixel((17, 2))):
                     number = 7
                 else:
                     number = 5
-            elif self.is_pix_white(img.getpixel((2, 8))):
+            elif self.is_pix_white(img.getpixel((2, 9))):
                 if self.is_pix_white(img.getpixel((17, 6))):
                     number = 8
                 else:
@@ -151,7 +151,7 @@ class NesTetris:
 
 
     def extract_next_block(self, img):
-        img.convert("RGB").save("debug.png", "PNG")
+        #img.convert("RGB").save("debug.png", "PNG")
 
         #read
         if self.is_pix_not_black(img.getpixel((5, 18))):
