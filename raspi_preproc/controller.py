@@ -3,6 +3,8 @@ import time
 import datetime
 import base64
 import pigpio
+from stream_nes import StreamNES
+from image_loader import ImageLoader
 
 USBPORT = '/dev/ttyACM0'  # check correct port first
 # USBPORT = 'COM3' #check correct port first
@@ -27,6 +29,8 @@ counter = 0
 delaycounter = 1
 delay = 1  # FPS 1 for testing
 data_read = 0
+iloader = ImageLoader()
+strmnes = StreamNES()
 
 print("Start sending")
 while True:

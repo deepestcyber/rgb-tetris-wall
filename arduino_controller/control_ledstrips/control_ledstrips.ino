@@ -402,5 +402,19 @@ void loop() {
   timedDelay(waitingTime);
 }
 
+
+void rainbow(){
+
+}
+
+void rain(){
+
+}
+
+void glitter(){
+
+}
+
+
 // ------ Tools ------
 

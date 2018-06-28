@@ -1,0 +1,4 @@
+pyv4l2
+numpy
+Pillow
+base64
