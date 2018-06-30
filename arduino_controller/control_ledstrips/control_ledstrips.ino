@@ -201,7 +201,7 @@ void checkButtons() {
   // compare the buttonState to its previous state
   buttonsAvailable1 = digitalRead(SWITCH_PARENTAL_LOCK_1); // enable all buttons
   buttonsAvailable2 = digitalRead(SWITCH_PARENTAL_LOCK_2); // enable all buttons except the mode switch
-  if (buttonsAvailable1 == LOW || buttonsAvailable2) {
+  if (buttonsAvailable1 == LOW || buttonsAvailable2 == LOW) {
     for (int i = 0; i < NUM_BUTTONS; i++) {
       if (i == 0) buttonState[i] = digitalRead(BUTTON_MDP_DEC);
       else if (i == 1) buttonState[i] = digitalRead(BUTTON_MDP_INC);
@@ -278,7 +278,7 @@ void loop() {
     //if (Serial1.readBytes(data, NUM_BYTES_VSTREAM) == NUM_BYTES_VSTREAM) {
     // UART done.
     // Communication via SPI:
-    SPI.transfer("30");
+    SPI.transfer({byte(3), byte(0)});
     if (process_it) {
       data[spi_pos] = 0;
       Serial.println(String(data[0]));
@@ -321,7 +321,7 @@ void loop() {
 
   // mode - image stream: one frame with 24 bit/px (at max every 1000ms)
   else if (mode == 1) {
-    SPI.transfer("30");
+    SPI.transfer({byte(2), byte(submode[2])});
     if (process_it) {
       data[spi_pos] = 0;
       Serial.println(String(data[0]));
