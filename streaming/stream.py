@@ -21,7 +21,7 @@ parser.add_argument('--height', type=int, default=576)
 parser.add_argument('--scale', type=float, default=1.)
 parser.add_argument('--visdom-server', type=str, default='http://localhost')
 parser.add_argument('--visdom', action='store_true')
-parser.add_argument('--device', type=str, default='/dev/video1')
+parser.add_argument('--device', type=str, default='/dev/video0')
 
 args = parser.parse_args()
 
