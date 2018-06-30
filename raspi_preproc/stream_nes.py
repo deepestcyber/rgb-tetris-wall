@@ -21,7 +21,7 @@ class StreamNES:
     def __init__(self, _num_leds_h=16, _num_leds_v=24):
         self.num_leds_h = _num_leds_h
         self.num_leds_v = _num_leds_v
-        self.leds = [[0 for i in range(_num_leds_v)] for j in range(_num_leds_h)]
+        self.leds = np.zeros((_num_leds_v, _num_leds_h, 3)) #should be not necessary
         self.b64dict = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
         self.mode = 'PAL-B'
         self.width = 720
@@ -34,7 +34,7 @@ class StreamNES:
         self.w = int(self.width // self.scale)
         self.h = int(self.height // self.scale)
 
-        self.game = NesTetris()
+        self.game = NesTetris(_num_leds_h=_num_leds_h, _num_leds_v=_num_leds_v)
 
         os.system(
         'v4l2-ctl -d {device} -s {m} --set-fmt-video width={w},height={h},pixelformat={f}'.format(
@@ -47,6 +47,14 @@ class StreamNES:
         u = Image.frombytes('L', (w, h), data[0::4].copy().repeat(2, 0))
         v = Image.frombytes('L', (w, h), data[2::4].copy().repeat(2, 0))
         return Image.merge('YCbCr', (y, u, v))
+
+    def read_frame_dec(self):
+        self.leds = self.read_frame()
+        #TODO convert to 64 color palette, thus the remainder does not work
+        data_b64 = ''.join(self.b64dict[m] for n in self.leds for m in n)
+        data_dec = base64.b64decode(data_b64)
+
+        return data_dec
 
     def read_frame(self):
 
@@ -70,38 +78,19 @@ class StreamNES:
 
     # for debug:
     def read_frame1(self):
-
         frame_data = self.frame.get_frame()
-
         return frame_data
-
     def read_frame2(self, frame_data):
-
         img = self.Frame_UYVY2YCbCr_PIL(self.w, self.h, frame_data)
-
         return img
-
     def read_frame3(self, img):
-
         img_game = self.game.extract_game_area(img).convert("HSV")
-
         return img_game
-
     def read_frame4(self, img_game):
-
         img_leds = self.game.transform_frame(img_game)
         self.leds = img_leds
-
         return self.leds
     # end for debug
-
-
-    def read_frame_dec(self):
-        self.leds = self.read_frame()
-        data_b64 = ''.join(self.b64dict[m] for n in self.leds for m in n)
-        data_dec = base64.b64decode(data_b64)
-
-        return data_dec
 
 
 #for debug

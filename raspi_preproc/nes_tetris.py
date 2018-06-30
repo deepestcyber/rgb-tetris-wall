@@ -14,6 +14,7 @@ class NesTetris:
         self.black = (0, 0, 0)
 
         self.img_leds = Image.new(_FORMAT, (_num_leds_h, _num_leds_v), 0)
+        #print("debug -", "leds_init:", np.array(self.img_leds, dtype=np.uint8).shape)
 
         # frame play area
         for y in range(2, 24):
@@ -285,12 +286,15 @@ class NesTetris:
         return self.img_leds
 
 #for debug
+import numpy as np
+
 if __name__ == "__main__":
-    im = Image.open("nes_cut.png").convert(_FORMAT)
+    im = Image.open("../streaming/nes_cut.png").convert(_FORMAT)
     gray = im.getpixel((6,6))
     print("debug gray", gray)
     game = NesTetris(_gray=gray)
     leds = game.transform_frame(im).convert("RGB")
+    print("leds", np.array(leds, dtype=np.uint8).shape)
     leds.save("leds.png", "PNG")
     im.convert("RGB").save("debug1.png", "PNG")
 

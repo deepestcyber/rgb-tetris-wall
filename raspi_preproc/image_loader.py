@@ -11,15 +11,15 @@ class ImageLoader:
     def __init__(self, _num_leds_h=16, _num_leds_v=24):
         self.num_leds_h = _num_leds_h
         self.num_leds_v = _num_leds_v
-        self.black = (0, 0, 0)
+        self.leds = np.zeros((_num_leds_v, _num_leds_h, 3)) #should be not necessary
 
-        self.leds = [[0 for i in range(_num_leds_v)] for j in range(_num_leds_h)]
-        self.img_leds = Image.new(_FORMAT, (_num_leds_h, _num_leds_v), self.black)
+        self.black = (0, 0, 0)
         self.ipath = "../images"
         self.default_image_name = "black.png"
         self.image_name = self.default_image_name
         self.get_image_list()
         self.img_leds = Image.new(_FORMAT, (self.num_leds_h, self.num_leds_v), self.black)
+
         self.load_image(self.default_image_name)
 
     def get_image_list(self):
@@ -54,14 +54,21 @@ class ImageLoader:
 
         return self.load_image(self.image_name)
 
+    def load_numbered_image(self, number):
+
+        self.image_name = self.image_list[(number+len(self.image_list))%len(self.image_list)]
+
+        return self.load_image(self.image_name)
+
 
 #for debug:
 if __name__ == "__main__":
 
     iload = ImageLoader()
 
-    img = iload.load_random_image()
+    leds = iload.load_random_image()
     print(iload.ipath+"/"+iload.image_name)
-    print(img[12][8])
+    print("debug -", "leds:", leds.shape)
+    Image.fromarray(leds).save("leds.png", "PNG")
 
     #img.convert("RGB").save("leds.png", "PNG")
