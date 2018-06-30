@@ -30,7 +30,7 @@ class StreamNES:
         #self.color = '' #''smpte170'
 
         self.scale = 1.
-        self.device = '/dev/video1'
+        self.device = '/dev/video0'
         self.w = int(self.width // self.scale)
         self.h = int(self.height // self.scale)
 
@@ -96,7 +96,7 @@ class StreamNES:
 #for debug
 import time
 import datetime
-import visdom
+#import visdom
 from six import BytesIO
 import base64 as b64
 

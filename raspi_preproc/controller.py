@@ -45,15 +45,20 @@ abeatd = AudioBeatdetection(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
 def send_SPI(data):
     if DEBUG_MODE:
         print("debug -", "sending bytes:", len(data))
-    pi.spi_write(spi, data_dec)
-    pi.spi_xfer(spi, data_dec)
-    spi.flush()
+    pi.spi_write(spi, data)
+    #pi.spi_xfer(spi, data_dec)
+    #spi.flush()
 
 
 while True:
     timestart = datetime.datetime.now()
     if DEBUG_MODE:
         timeproc = timesend = timestart
+
+    if DEBUG_MODE:
+        print("debug -", "waiting for SPI")
+    while ((pi.read_bank_1() >> SYNC_PIN) & 1 != 1):
+        pass  # just wait, until the sync pin is set
 
     if (pi.read_bank_1() >> SYNC_PIN) == 1:
     #if True:  #for debug
