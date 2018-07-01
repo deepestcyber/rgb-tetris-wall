@@ -27,7 +27,7 @@ pi = pigpio.pi()
 if not pi.connected:
     print("could not connect SPI")
     exit()
-spi = pi.spi_open(0, 750000, 0)
+spi = pi.spi_open(0, 57600, 0)
 
 # initialise pin to arduino for flagging synchronisation
 SYNC_PIN = 24  # GPIO pin numbers
@@ -35,7 +35,7 @@ pi.set_mode(SYNC_PIN, pigpio.INPUT)  # define pulldown/pullup
 
 leds = np.zeros((NUM_LEDS_H, NUM_LEDS_V, 3), dtype='uint8')
 mode = 0
-submode = [0, 0, 0, 0]
+submode = [0 for n in range(256)]
 
 iloader = ImageLoader(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
 strmnes = StreamNES(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
@@ -64,7 +64,8 @@ while True:
 
         if ((pi.read_bank_1() >> SYNC_PIN) & 1) == 1:
 
-            (num_bytes, data_read) = pi.spi_read(spi, 2)
+            # (num_bytes, data_read) = pi.spi_read(spi, 2)
+            (num_bytes, data_read) = (2, b'\x03\x00')
 
             if DEBUG_MODE:
                 print("debug -", "num_bytes:", num_bytes, "data_read:", data_read)
@@ -138,6 +139,7 @@ while True:
                         leds = iloader.load_random_image()
                     else:
                         leds = iloader.load_numbered_image(submode[2])
+                    leds = iloader.load_numbered_image(6)
                     time_last_istream_change = datetime.datetime.now()
                     if DEBUG_MODE:
                         print("debug -", "leds:", leds.shape)

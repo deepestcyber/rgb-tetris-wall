@@ -30,7 +30,7 @@ class ImageLoader:
     def load_image(self, name):
         if any(name in n for n in self.image_list):
             self.img_leds = Image.open(self.ipath+"/"+name).\
-                resize((self.num_leds_h, self.num_leds_v))
+                resize((self.num_leds_h, self.num_leds_v)).convert("RGB")
 
         self.leds = np.array(self.img_leds)
         return self.leds
