@@ -49,7 +49,7 @@
 #define NUM_FPS_VSTREAM 25
 #define WAITTIME_VSTREAM 40 // in ms for NES video stream
 #define WAITTIME_ASTREAM 40 // in ms for beat detection stream
-#define WAITTIME_ISTREAM 1000 // in ms for Image steram
+#define WAITTIME_ISTREAM 100 // in ms for Image steram
 #define NUM_BITS_VSTREAM 24 // 6
 #define NUM_BYTES_VSTREAM 1152 // 288 // NUM_LEDS_H*NUM_LEDS_V*NUM_BITS_VSTREAM/8;
 #define NUM_BYTES_ASTREAM NUM_LEDS_H*NUM_LEDS_V*3
@@ -68,8 +68,8 @@ int photoRSTState = 0;      // photo resistor for regulating brightness
 float photoLeakeRate = 0.9; // for smoothing the photo resistor [0,1]
 int buttonState [NUM_BUTTONS];         // current state of the button
 int lastButtonState [NUM_BUTTONS];     // previous state of the button
-int buttonsAvailable1 = 0;  // default: parental lock for all buttons enabled
-int buttonsAvailable2 = 0;  // default: parental lock for the mode switch enabled
+bool buttonsAvailable1 = false;  // default: parental lock for all buttons enabled
+bool buttonsAvailable2 = false;  // default: parental lock for the mode switch enabled
 
 elapsedMillis elapsedTime;
 int waitingTime = 0;
@@ -83,13 +83,13 @@ const uint8_t statusBrightness = 127;  // brightness for STATUS leds [0,255]
 
 int state = 0;
 
-byte data[NUM_BYTES_VSTREAM];
+byte data[NUM_BYTES_VSTREAM+10];
 //byte dataImage[NUM_BYTES_ISTREAM];
 //byte dataImage[NUM_BYTES_ISTREAM];
 // uint8_t data[NUM_BYTES_VSTREAM];
 // uint8_t dataImage[NUM_BYTES_ISTREAM];
 // for SPI:
-volatile byte spi_pos;
+volatile int spi_pos = 0;
 volatile boolean process_it;
 bool sync_is_high = false;
 
@@ -182,10 +182,14 @@ ISR (SPI_STC_vect) {
     sync_is_high = false;
   }
 
-  if (spi_pos < sizeof NUM_BYTES_VSTREAM) { 
-    data[spi_pos++] = c;
+  //if (spi_pos < NUM_BYTES_VSTREAM) { 
+    data[spi_pos] = c;
+    spi_pos++;
     process_it = (spi_pos == NUM_BYTES_VSTREAM);
-  }
+  //}
+  //Serial.print(process_it);
+  //Serial.print(", SPI_POS: ");
+  //Serial.println(spi_pos);
 }
 //  // add to buffer if room
 //  if (spi_pos < sizeof data) {
@@ -200,12 +204,20 @@ ISR (SPI_STC_vect) {
 //  } // end of room available
 // } // end of interrupt routine SPI_STC_vect
 
+void delayAwake(int time) {
+  int start = (int)elapsedTime;
+  while (true) {
+    if ((int)elapsedTime-start >= time) break;
+  }
+  return;
+}
+
 void checkButtons() {
 
   // compare the buttonState to its previous state
-  buttonsAvailable1 = digitalRead(SWITCH_PARENTAL_LOCK_1); // enable all buttons
-  buttonsAvailable2 = digitalRead(SWITCH_PARENTAL_LOCK_2); // enable all buttons except the mode switch
-  if (buttonsAvailable1 == LOW || buttonsAvailable2 == LOW) {
+  buttonsAvailable1 = digitalRead(SWITCH_PARENTAL_LOCK_1) == LOW; // enable all buttons
+  buttonsAvailable2 = digitalRead(SWITCH_PARENTAL_LOCK_2) == LOW; // enable all buttons except the mode switch
+  if (buttonsAvailable1 || buttonsAvailable2) {
     for (int i = 0; i < NUM_BUTTONS; i++) {
       if (i == 0) buttonState[i] = digitalRead(BUTTON_MDP_DEC);
       else if (i == 1) buttonState[i] = digitalRead(BUTTON_MDP_INC);
@@ -220,15 +232,21 @@ void checkButtons() {
         // if the state has changed, increment the counter
         if (buttonState[i] == LOW) {
           // if the current state is LOW then the button went from off to on:
-          if (i == 0) if (buttonsAvailable1 == LOW) mode = (mode - 1 + modeMax) % modeMax;
-          else if (i == 1) if (buttonsAvailable1 == LOW) mode = (mode + 1) % modeMax;
+          //if (i == 0) if (buttonsAvailable1 == LOW) mode = (mode - 1 + modeMax) % modeMax;
+          //else if (i == 1) if (buttonsAvailable1 == LOW) mode = (mode + 1) % modeMax;
+          if (i == 0) {
+            if (buttonsAvailable1) mode = (mode - 1 + modeMax) % modeMax;
+          }
+          else if (i == 1) {
+            if (buttonsAvailable1) mode = (mode + 1) % modeMax;
+          }
           else if (i == 2) submode[mode] = (submode[mode] - 1 + submodeMax[mode]) % submodeMax[mode];
           else if (i == 3) submode[mode] = (submode[mode] + 1) % submodeMax[mode];
           else if (i == 4) pspeed = min(pspeed + 1, 4);
           else if (i == 5) pspeed = max(pspeed - 1, 0);
           else if (i == 6) brightness = max(brightness - 1, 0);
           else if (i == 7) brightness = min(brightness + 1, 4);
-          Serial.print((submode[mode] - 1) % submodeMax[mode]);Serial.print("|");Serial.print((submode[mode] - 1));Serial.print("|");;Serial.print(submodeMax[mode]);Serial.print("|");
+          // Serial.print((submode[mode] - 1) % submodeMax[mode]);Serial.print("|");Serial.print((submode[mode] - 1));Serial.print("|");;Serial.print(submodeMax[mode]);Serial.print("|");
         } else {
           // if the current state is HIGH then the button went from on to off:
         }
@@ -262,11 +280,13 @@ void timedDelay(int waitingTime) {
   checkButtons();
   updateStatus();
   while ((waitingTime - (int)elapsedTime) > BUTTON_WAIT) {
-    delay(BUTTON_WAIT);
+    //delay(BUTTON_WAIT);
+    delayAwake(BUTTON_WAIT);
     checkButtons();
     updateStatus();
   }
-  delay(max(waitingTime - (int)elapsedTime, 0));
+  //delay(max(waitingTime - (int)elapsedTime, 0));
+  delayAwake(max(waitingTime - (int)elapsedTime, 0));
   waitingTime = 0; // for safety - TODO remove
 }
 
@@ -284,8 +304,8 @@ void loop() {
     // Communication via SPI:
     SPI.transfer16(mode<<8 | submode[mode]);
     if (process_it) {
-      data[spi_pos] = 0;
-      Serial.println(String(data[0]));
+      // data[spi_pos] = 0;
+      // Serial.println(String(data[0]));
       for (int i = 0; i < NUM_LEDS_H; i++) {
         for (int j = 0; j < NUM_LEDS_V; j += 4) {
           leds[i][j] = CRGB(data[j * NUM_LEDS_H * 3 + i * 3 + 0], data[j * NUM_LEDS_H * 3 + i * 3 + 0], data[j * NUM_LEDS_H * 3 + i * 3 + 0]);
@@ -325,22 +345,43 @@ void loop() {
 
   // mode - image stream: one frame with 24 bit/px (at max every 1000ms)
   else if (mode == 1) {
-    SPI.transfer16(mode<<8 | submode[mode]);
+    static bool waiting_for_image = false;
+    static uint32_t image_timeout_counter = 0;
     if (process_it) {
-      data[spi_pos] = 0;
-      Serial.println(String(data[0]));
-      for (int i = 0; i < NUM_LEDS_H; i++) {
-        for (int j = 0; j < NUM_LEDS_V; j += 4) {
-          leds[i][j] = CRGB(data[j * NUM_LEDS_H * 3 + i * 3 + 0], data[j * NUM_LEDS_H * 3 + i * 3 + 0], data[j * NUM_LEDS_H * 3 + i * 3 + 0]);
+      //data[spi_pos] = 0;
+      //Serial.println(String(data[0]));
+      for (int i = 0; i < NUM_LEDS_V; i++) {
+        for (int j = 0; j < NUM_LEDS_H; j++) {
+          int firstByte = ((j*NUM_LEDS_V + i) * 3);
+          leds[j][NUM_LEDS_V-i-1] = CRGB(data[firstByte+0], data[firstByte+1], data[firstByte+2]);
         }
       }
+      FastLED.show();
 
       state = 1;
       // Communication via SPI:
       spi_pos = 0;
-      digitalWrite(SYNC_PIN, HIGH);
-      sync_is_high = true;
+//      digitalWrite(SYNC_PIN, HIGH);
+//      sync_is_high = true;
       process_it = false;
+      waiting_for_image = false;
+    } else if ( !waiting_for_image ) {
+      sync_is_high = true;
+      // SPI.transfer16(mode<<8 | submode[mode]);
+      spi_pos = 0;
+      digitalWrite(SYNC_PIN, HIGH);
+      waiting_for_image = true;
+      image_timeout_counter = 0;
+    } else if (image_timeout_counter>2) {
+      // reset spi stuff:
+      spi_pos = 0;
+      process_it = false;
+      image_timeout_counter = 0;
+      sync_is_high = false;
+      digitalWrite(SYNC_PIN, LOW);
+      waiting_for_image = false;
+    } else {
+      image_timeout_counter+=1;
     }
     waitingTime = WAITTIME_ISTREAM;
   }
@@ -414,7 +455,7 @@ void loop() {
       waitingTime = pspeed * pspeed * 62 + 8;
     }
     // delay(cspeed);
-  }
+  }/*
   if (DEBUG_MODE) {
     Serial.print("photo: "); Serial.print(photoRSTState); Serial.print(", ");
     Serial.print("brightness: "); Serial.print((int)(photoRSTState/1023.*valueBrightness[brightness])); Serial.print(", ");
@@ -422,12 +463,12 @@ void loop() {
     Serial.print(mode); Serial.print(", submode: "); Serial.print(submode[mode]); Serial.print("/"); Serial.print(submodeMax[mode]); Serial.print("): ");
     Serial.print(elapsedTime);
   }
-  FastLED.show();
+
   if (DEBUG_MODE) {
     Serial.print("/");
     Serial.println(elapsedTime);
     Serial.flush();
-  }
+  }*/
   timedDelay(waitingTime);
 }
 

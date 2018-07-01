@@ -69,7 +69,7 @@ class StreamNES:
         self.leds = np.array(img_leds)
 
         #debug:
-        self.leds = img_leds
+        #self.leds = img_leds
         #img_game.convert("RGB").save("nes_cut.png", "PNG")
         #img_leds.convert("RGB").save("leds.png", "PNG")
 
