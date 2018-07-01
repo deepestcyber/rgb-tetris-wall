@@ -1,4 +1,4 @@
-import serial
+mport serial
 import time
 import datetime
 import base64
@@ -26,7 +26,7 @@ if not pi.connected:
 spi = pi.spi_open(0, 750000, 0)
 
 
-3counter = 0
+counter = 0
 delaycounter = 1
 delay = 1 #FPS 1 for testing
 data_read = 0

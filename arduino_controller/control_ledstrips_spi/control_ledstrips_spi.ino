@@ -73,6 +73,7 @@ byte dataImage[NUM_BYTES_ISTREAM];
 // for SPI:
 volatile int spi_pos;
 volatile boolean process_it;
+bool sync_is_high = false;
 
 void setup() {
   //  Communication via UART
@@ -85,6 +86,7 @@ void setup() {
   // have to send on master in, *slave out*
   pinMode(MISO, OUTPUT);
   pinMode(SYNC_PIN, OUTPUT);
+  digitalWrite(SYNC_PIN, LOW);
 
   // get ready for an interrupt
   spi_pos = 0;
@@ -117,9 +119,10 @@ void setup() {
   //setPaletteNES();
 
   delay(100);
+  digitalWrite(SYNC_PIN, HIGH);
+  sync_is_high = true;
 }
 
-bool sync_is_high = true;
 
 ISR (SPI_STC_vect)
 {

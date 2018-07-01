@@ -42,7 +42,7 @@ if not pi.connected:
     print("could not connect spi")
     exit()
 spi = pi.spi_open(0, 750000, 0)
-SYNC_PIN = 18
+SYNC_PIN = 24
 pi.set_mode(SYNC_PIN, pigpio.INPUT)
 
 NUM_LEDS_H = 16
@@ -61,10 +61,12 @@ def send_spi(colours):
     # wait for spi
     print("waiting for spi")
     wait = True
+    print("debug -", "pi.read_bank_1:", pi.read_bank_1())
     while wait:
         v = (pi.read_bank_1() >> SYNC_PIN) & 1
         if v == 1:
             wait = False
+            print("debug -", "pi.read_bank_1:", pi.read_bank_1())
     pi.spi_write(spi, data_dec)
 
 def send_pi(img):
