@@ -2,6 +2,7 @@ import os
 import base64
 import numpy as np
 from pyv4l2.frame import Frame
+from PyV4L2Camera.camera import Camera
 from PIL import Image
 from PIL import ImageFilter
 from nes_tetris import NesTetris
@@ -27,6 +28,7 @@ class StreamNES:
         self.width = 720
         self.height = 576
         self.format = 'UYVY'
+        self.b = 3  # 3 2
         #self.color = '' #''smpte170'
 
         self.scale = 1.
@@ -39,7 +41,8 @@ class StreamNES:
         os.system(
         'v4l2-ctl -d {device} -s {m} --set-fmt-video width={w},height={h},pixelformat={f}'.format(
             device=self.device, m=self.mode, w=self.w, h=self.h, f=self.format))
-        self.frame = Frame(self.device)
+        #self.frame = Frame(self.device)
+        self.frame = Camera(self.device)
 
     def Frame_UYVY2YCbCr_PIL(self, w, h, frame_data):
         data = np.fromstring(frame_data, dtype='uint8')
@@ -59,11 +62,18 @@ class StreamNES:
     def read_frame(self):
 
         #get a frame from the device
-        frame_data = self.frame.get_frame()
-        img = self.Frame_UYVY2YCbCr_PIL(self.w, self.h, frame_data)
+        #frame_data = self.frame.get_frame()
+        while True:
+            frame_data = self.frame.get_frame()
+            if len(frame_data) == self.w * self.h * self.b:
+                break
+
+        #img = self.Frame_UYVY2YCbCr_PIL(self.w, self.h, frame_data)
+        img = Image.frombytes('RGB', (self.w, self.h), frame_data, 'raw', 'RGB')
 
         #cut the frame to game size (depending on game) ane transform it for the leds
-        img_game = self.game.extract_game_area(img).filter(ImageFilter.SMOOTH).convert("HSV")
+        #img_game = self.game.extract_game_area(img).filter(ImageFilter.SMOOTH).convert("HSV")
+        img_game = self.game.extract_game_area(img)
         img_leds = self.game.transform_frame(img_game)
         #img to array conversion
         self.leds = np.array(img_leds)
@@ -78,13 +88,21 @@ class StreamNES:
 
     # for debug:
     def read_frame1(self):
-        frame_data = self.frame.get_frame()
+        #frame_data = self.frame.get_frame()
+        while True:
+            frame_data = self.frame.get_frame()
+            if len(frame_data) == self.w * self.h * self.b:
+                break
+            else:
+                print("debug - ", "frame not correct", "frame_data_len:", len(frame_data))
         return frame_data
     def read_frame2(self, frame_data):
-        img = self.Frame_UYVY2YCbCr_PIL(self.w, self.h, frame_data)
+        #img = self.Frame_UYVY2YCbCr_PIL(self.w, self.h, frame_data)
+        img = Image.frombytes('RGB', (self.w, self.h), frame_data, 'raw', 'RGB')
         return img
     def read_frame3(self, img):
-        img_game = self.game.extract_game_area(img).convert("HSV")
+        #img_game = self.game.extract_game_area(img).filter(ImageFilter.SMOOTH).convert("HSV")
+        img_game = self.game.extract_game_area(img)
         return img_game
     def read_frame4(self, img_game):
         img_leds = self.game.transform_frame(img_game)
@@ -150,8 +168,8 @@ if __name__ == "__main__":
         d = stream.read_frame4(c)
 
         timefin = datetime.datetime.now()
-        c.convert("RGB").save("nes_cut.png", "PNG")
-        d.convert("RGB").save("leds.png", "PNG")
+        #c.convert("RGB").save("nes_cut.png", "PNG")
+        #d.convert("RGB").save("leds.png", "PNG")
         if is_visdom:
             send_visdom(vis, c.convert('RGBA'), win='source')
             send_visdom(vis, d.resize((160,240)).convert('RGBA'), win='led-pixel-wall')
