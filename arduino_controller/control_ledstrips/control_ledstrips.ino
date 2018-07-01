@@ -59,10 +59,10 @@ CRGB leds[NUM_LEDS_H][NUM_LEDS_V];
 CRGB status_leds[NUM_STATUS_LEDS];
 
 // modes: 0 = light patterns, 1 = image stream (24bit), 2 = music patterns, 3 = NES video stream
-int mode = 0;
-int modeMax = 4;
-int submode [4] = {0, 0, 0, 0};
-int submodeMax [4] = {64, 1, 1, 1}; // Used for all mode switches
+uint8_t mode = 1;
+uint8_t modeMax = 4;
+uint8_t submode [4] = {0, 0, 0, 0};
+uint8_t submodeMax [4] = {64, 1, 1, 1}; // Used for all mode switches
 
 int photoRSTState = 0;      // photo resistor for regulating brightness
 float photoLeakeRate = 0.9; // for smoothing the photo resistor [0,1]
@@ -74,11 +74,11 @@ int buttonsAvailable2 = 0;  // default: parental lock for the mode switch enable
 elapsedMillis elapsedTime;
 int waitingTime = 0;
 
-int pspeed = 2; // [0..4]
-int cspeed = 255;
-int brightness = 2; // [0..4]
-const int valueBrightness [5] = {9, 17, 37, 95, 252}; // {3, 9, 27, 81, 243} // brightness for wall leds [0,255]
-const int statusBrightness = 127;  // brightness for STATUS leds [0,255]
+uint8_t pspeed = 2; // [0..4]
+uint8_t cspeed = 255;
+uint8_t brightness = 2; // [0..4]
+const uint8_t valueBrightness [5] = {9, 17, 37, 95, 252}; // {3, 9, 27, 81, 243} // brightness for wall leds [0,255]
+const uint8_t statusBrightness = 127;  // brightness for STATUS leds [0,255]
 // const int valueb [5][4] = {{3, 9, 27, 81}, {4, 12, 36, 108}, {5, 15, 45, 135}, {7, 21, 63, 189}, {9, 27, 81, 243}};  // deprecated
 
 int state = 0;
@@ -91,6 +91,7 @@ byte data[NUM_BYTES_VSTREAM];
 // for SPI:
 volatile byte spi_pos;
 volatile boolean process_it;
+bool sync_is_high = false;
 
 void setup() {
   for (int i = 0; i < NUM_BUTTONS; i++) {
@@ -120,6 +121,7 @@ void setup() {
   pinMode(MISO, OUTPUT);
   pinMode(MOSI, OUTPUT);
   pinMode(SYNC_PIN, OUTPUT);
+  digitalWrite(SYNC_PIN, LOW);
   // get ready for an interrupt
   spi_pos = 0;   // buffer empty
   process_it = false;
@@ -163,9 +165,9 @@ void setup() {
   // setPaletteNES();
 
   delay(100);
+  digitalWrite(SYNC_PIN, HIGH);
+  sync_is_high = true;
 }
-
-bool sync_is_high = true;
 
 // SPI interrupt routine
 ISR (SPI_STC_vect) {
@@ -180,8 +182,10 @@ ISR (SPI_STC_vect) {
     sync_is_high = false;
   }
 
-  data[spi_pos++] = c;
-  process_it = (spi_pos == NUM_BYTES_VSTREAM);
+  if (spi_pos < sizeof NUM_BYTES_VSTREAM) { 
+    data[spi_pos++] = c;
+    process_it = (spi_pos == NUM_BYTES_VSTREAM);
+  }
 }
 //  // add to buffer if room
 //  if (spi_pos < sizeof data) {
@@ -278,7 +282,7 @@ void loop() {
     //if (Serial1.readBytes(data, NUM_BYTES_VSTREAM) == NUM_BYTES_VSTREAM) {
     // UART done.
     // Communication via SPI:
-    SPI.transfer({byte(3), byte(0)});
+    SPI.transfer16(mode<<8 | submode[mode]);
     if (process_it) {
       data[spi_pos] = 0;
       Serial.println(String(data[0]));
@@ -292,8 +296,8 @@ void loop() {
       // Communication via SPI:
       spi_pos = 0;
       digitalWrite(SYNC_PIN, HIGH);
-      process_it = false;
       sync_is_high = true;
+      process_it = false;
     }
       //SPI done.
     else {
@@ -321,7 +325,7 @@ void loop() {
 
   // mode - image stream: one frame with 24 bit/px (at max every 1000ms)
   else if (mode == 1) {
-    SPI.transfer({byte(2), byte(submode[2])});
+    SPI.transfer16(mode<<8 | submode[mode]);
     if (process_it) {
       data[spi_pos] = 0;
       Serial.println(String(data[0]));
@@ -335,8 +339,8 @@ void loop() {
       // Communication via SPI:
       spi_pos = 0;
       digitalWrite(SYNC_PIN, HIGH);
-      process_it = false;
       sync_is_high = true;
+      process_it = false;
     }
     waitingTime = WAITTIME_ISTREAM;
   }
