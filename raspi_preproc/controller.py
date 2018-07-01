@@ -16,7 +16,7 @@ USBPORT = '/dev/ttyACM0'  # check correct port first
 NUM_LEDS_H = 16  # 16
 NUM_LEDS_V = 24  # 24
 FPS = 25
-POLL_GRACE_PERIOD = 0.1  # mainly for debug.
+POLL_GRACE_PERIOD = 0.01  # mainly for debug.
 waittime_until_next_image = 3.0  # change the random image every 5 minutes
 time_last_istream_change = datetime.datetime.now()
 
@@ -27,7 +27,7 @@ pi = pigpio.pi()
 if not pi.connected:
     print("could not connect SPI")
     exit()
-spi = pi.spi_open(0, 57600, 0)
+spi = pi.spi_open(0, 460800, 0)  # 460800 691200 921600
 
 # initialise pin to arduino for flagging synchronisation
 SYNC_PIN = 24  # GPIO pin numbers
@@ -56,19 +56,19 @@ while True:
         if DEBUG_MODE:
             timeproc = timesend = timestart
 
-        if DEBUG_MODE:
-             print("debug -", "waiting for SPI", "pi.read_bank_1:", pi.read_bank_1())
+        #if DEBUG_MODE:
+            #print("debug -", "waiting for SPI", "pi.read_bank_1:", pi.read_bank_1())
 
         while ((pi.read_bank_1() >> SYNC_PIN) & 1) != 1:
             pass  # just wait, until the sync pin is set
 
         if ((pi.read_bank_1() >> SYNC_PIN) & 1) == 1:
 
-            # (num_bytes, data_read) = pi.spi_read(spi, 2)
-            (num_bytes, data_read) = (2, b'\x03\x00')
+            #(num_bytes, data_read) = pi.spi_read(spi, 2)
+            (num_bytes, data_read) = (2, b'\x01\x00')  #for debug
 
-            if DEBUG_MODE:
-                print("debug -", "num_bytes:", num_bytes, "data_read:", data_read)
+            #if DEBUG_MODE:
+                #print("debug -", "num_bytes:", num_bytes, "data_read:", data_read, "pi.read_bank_1:", pi.read_bank_1())
 
 
             # check if the mode was unchanged (on arduino)
@@ -79,7 +79,7 @@ while True:
                 if mode == new_mode and submode[mode] == new_submode:
                     is_modes_changed = False
                 if DEBUG_MODE:
-                    print("debug -", "change:", is_modes_changed, "new_mode:", new_mode, "new_submode:", new_submode)
+                    print("debug -", "change:", is_modes_changed, "new_mode:", new_mode, "new_submode:", new_submode, "prev_mode:", mode, "prev_submode:", submode[mode])
                 mode = new_mode
                 submode[mode] = new_submode
 
@@ -139,15 +139,15 @@ while True:
                         leds = iloader.load_random_image()
                     else:
                         leds = iloader.load_numbered_image(submode[2])
-                    leds = iloader.load_numbered_image(6)
+                    #leds = iloader.load_numbered_image(6)
                     time_last_istream_change = datetime.datetime.now()
                     if DEBUG_MODE:
                         print("debug -", "leds:", leds.shape)
 
-                if DEBUG_MODE:
-                    timesend = datetime.datetime.now()
-                data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
-                send_SPI(data_enc)
+                    if DEBUG_MODE:
+                        timesend = datetime.datetime.now()
+                    data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
+                    send_SPI(data_enc)
             else:  #mode == 0  # no stream
                 if DEBUG_MODE:
                     print("debug -", "Nothing to see here")
@@ -161,8 +161,8 @@ while True:
 
             if timeproc > timesend:
                 handshake_delta_t = (timesend - timestart).microseconds/1000
-                proc_delta_t = (timeproc - timesend).microseconds/1000
-                send_delta_t = (timefin - timeproc).microseconds/1000
+                send_delta_t = (timeproc - timesend).microseconds/1000
+                proc_delta_t = (timefin - timeproc).microseconds/1000
             else:
                 handshake_delta_t = (timeproc - timestart).microseconds/1000
                 proc_delta_t = (timesend - timeproc).microseconds/1000

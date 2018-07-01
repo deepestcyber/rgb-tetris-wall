@@ -64,9 +64,9 @@ class NesTetris:
         return False
 
 
-    def is_pix_not_black(self, pix):
+    def is_pix_black(self, pix):
         #if (pix[0] or pix[1] or pix[2]) >= 20: #RGB
-        if (pix[2]) >= 48: #HSV
+        if (pix[2]) < 48: #HSV
                 return True
         return False
 
@@ -109,23 +109,47 @@ class NesTetris:
         return number
 
 
+    def test_pixel(self, img, x, y, is_white=True):
+        pix = img.crop((x, y, x+1, y+1)).convert("HSV").getpixel((0, 0))
+        if is_white:
+            return self.is_pix_white(pix)
+        else:
+            return self.is_pix_black(pix)
+
+
     def test_tetris_runnig(self, img):
-        if self.is_pix_not_black(img.getpixel((54, 59))):
+        if not self.test_pixel(img, 54, 59, is_white=False):
             return False
-        if self.is_pix_not_black(img.getpixel((197, 142))):
+        if not self.test_pixel(img, 197, 142, is_white=False):
             return False
-        if self.is_pix_not_black(img.getpixel((484, 350))):
+        if not self.test_pixel(img, 484, 350, is_white=False):
             return False
-        if self.is_pix_not_black(img.getpixel((536, 101))):
+        if not self.test_pixel(img, 536, 101, is_white=False):
             return False
-        if not self.is_pix_white(img.getpixel((546, 321))):
+        if not  self.test_pixel(img, 546, 321, is_white=True):
             return False
-        if not self.is_pix_white(img.getpixel((370, 53))):
+        if not self.test_pixel(img, 370, 53, is_white=True):
             return False
-        if not self.is_pix_white(img.getpixel((67, 154))):
+        if not self.test_pixel(img, 67, 154, is_white=True):
             return False
-        if not self.is_pix_white(img.getpixel((109, 387))):
+        if not self.test_pixel(img, 109, 387, is_white=True):
             return False
+        # if not self.is_pix_black(img.getpixel((54, 59))):
+        #     return False
+        # if not self.is_pix_black(img.getpixel((197, 142))):
+        #     return False
+        # if not self.is_pix_black(img.getpixel((484, 350))):
+        #     return False
+        # if not self.is_pix_black(img.getpixel((536, 101))):
+        #     return False
+        # if not self.is_pix_white(img.getpixel((546, 321))):
+        #     return False
+        # if not self.is_pix_white(img.getpixel((370, 53))):
+        #     return False
+        # if not self.is_pix_white(img.getpixel((67, 154))):
+        #     return False
+        # if not self.is_pix_white(img.getpixel((109, 387))):
+        #     return False
 
         return True
 
@@ -142,7 +166,7 @@ class NesTetris:
         for y in range(20):
             for x in range(10):
                 at = (1 + x * 20 + 10, 1 + y * 16 + 9)
-                if self.is_pix_not_black(img.getpixel(at)):
+                if not self.is_pix_black(img.getpixel(at)):
                     pix = img.getpixel(at)
                 else:
                     pix = self.black
@@ -155,23 +179,23 @@ class NesTetris:
         #img.convert("RGB").save("debug.png", "PNG")
 
         #read
-        if self.is_pix_not_black(img.getpixel((5, 18))):
+        if not self.is_pix_black(img.getpixel((5, 18))):
             next_block = 6
             next_block_col = img.getpixel((5, 18))
-        elif self.is_pix_not_black(img.getpixel((15, 9))):
-            if self.is_pix_not_black(img.getpixel((35, 26))):
-                if self.is_pix_not_black(img.getpixel((55, 9))):
+        elif not self.is_pix_black(img.getpixel((15, 9))):
+            if not self.is_pix_black(img.getpixel((35, 26))):
+                if not self.is_pix_black(img.getpixel((55, 9))):
                     next_block = 0
                 else:
                     next_block = 2
             else:
-                if self.is_pix_not_black(img.getpixel((15, 26))):
+                if not self.is_pix_black(img.getpixel((15, 26))):
                     next_block = 5
                 else:
                     next_block = 1
             next_block_col = img.getpixel((15, 9))
         else:
-            if self.is_pix_not_black(img.getpixel((60, 9))):
+            if not self.is_pix_black(img.getpixel((60, 9))):
                 next_block = 4
                 next_block_col = img.getpixel((60, 9))
             else:
@@ -269,19 +293,19 @@ class NesTetris:
             return self.img_leds
 
         # play area
-        self.extract_colours(img.crop((239, 93, 240 + 10 * 20, 94 + 20 * 16)).filter(ImageFilter.SMOOTH))
+        self.extract_colours(img.crop((239, 93, 240 + 10 * 20, 94 + 20 * 16)).convert("HSV").filter(ImageFilter.SMOOTH))
 
         # next block
-        self.extract_next_block(img.crop((482, 237, 482 + 81, 237 + 33)).filter(ImageFilter.SMOOTH))
+        self.extract_next_block(img.crop((482, 237, 482 + 81, 237 + 33)).convert("HSV").filter(ImageFilter.SMOOTH))
 
         # number of lines
-        self.extract_lines(img.crop((380, 45, 380 + 61, 45 + 16)).filter(ImageFilter.SMOOTH))
+        self.extract_lines(img.crop((380, 45, 380 + 61, 45 + 16)).convert("HSV").filter(ImageFilter.SMOOTH))
 
         # score
-        self.extract_score(img.crop((481, 125, 481 + 122, 125 + 16)).filter(ImageFilter.SMOOTH))
+        self.extract_score(img.crop((481, 125, 481 + 122, 125 + 16)).convert("HSV").filter(ImageFilter.SMOOTH))
 
         # number of level
-        self.extract_level(img.crop((522, 333, 522 + 40, 333 + 16)).filter(ImageFilter.SMOOTH))
+        self.extract_level(img.crop((522, 333, 522 + 40, 333 + 16)).convert("HSV").filter(ImageFilter.SMOOTH))
 
         return self.img_leds
 
