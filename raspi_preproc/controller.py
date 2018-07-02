@@ -1,3 +1,21 @@
+""" This is the terminal output:
+
+debug - waiting for SPI pi.read_bank_1: 536921599
+debug - requested mode received_data: 1 64 received_mode: 1 received_submode: 0
+debug - change: True new_mode: 1 new_submode: 0 prev_mode: 0 prev_submode: 0
+debug - new image: 0 last_image_t: 10002.64 wait_next_image_t: 500.00 (ms)
+debug - leds: (24, 16, 3)
+debug - sending bytes: 1152
+debug - arduino mode: 1 submode: 0 handshake_t: 9880.26 process_t: 2.29 send_t: 20.56 wait_t: 0.00 (ms)
+debug - waiting for SPI pi.read_bank_1: 536921599
+debug - requested mode received_data: 1 0 received_mode: 0 received_submode: 0
+debug - change: True new_mode: 0 new_submode: 0 prev_mode: 1 prev_submode: 0
+debug - Nothing to see here
+debug - arduino mode: 0 submode: 0 handshake_t: 56.98 process_t: 0.00 send_t: 0.26 wait_t: 42.76 (ms)
+debug - waiting for SPI pi.read_bank_1: 536921599
+
+"""
+
 import datetime
 import numpy as np
 import pigpio
@@ -16,8 +34,8 @@ USBPORT = '/dev/ttyACM0'  # check correct port first
 NUM_LEDS_H = 16  # 16
 NUM_LEDS_V = 24  # 24
 FPS = 25
-POLL_GRACE_PERIOD = 0.01  # mainly for debug.
-waittime_until_next_image = 3.0  # change the random image every 5 minutes
+POLL_GRACE_PERIOD = 0.1  # mainly for debug.
+waittime_until_next_image = 0.5  # change the random image every 5 minutes
 time_last_istream_change = datetime.datetime.now()
 
 b64dict = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -42,13 +60,23 @@ strmnes = StreamNES(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
 abeatd = AudioBeatdetection(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
 
 
+def decodeByte2Mode(byte):
+    # first two bits code the mode and remaining 6 bits code the submode
+    return byte >> 6, byte &~ (3<<6)
+
+def request_mode_SPI():
+    (num, byte) = pi.spi_xfer(spi, b'\x00')
+    if num == 1:
+        mode, submode = decodeByte2Mode(byte[0])
+        if DEBUG_MODE:
+            print("debug -", "requested mode", "received_data:", num, byte[0], "received_mode:", mode, "received_submode:", submode)
+        return (mode, submode)
+    return 0, 0
+
 def send_SPI(data):
     if DEBUG_MODE:
         print("debug -", "sending bytes:", len(data))
     pi.spi_write(spi, data)
-    #pi.spi_xfer(spi, data_dec)
-    #spi.flush()
-
 
 while True:
     try:
@@ -56,32 +84,23 @@ while True:
         if DEBUG_MODE:
             timeproc = timesend = timestart
 
-        #if DEBUG_MODE:
-            #print("debug -", "waiting for SPI", "pi.read_bank_1:", pi.read_bank_1())
+        if DEBUG_MODE:
+            print("debug -", "waiting for SPI", "pi.read_bank_1:", pi.read_bank_1())
 
         while ((pi.read_bank_1() >> SYNC_PIN) & 1) != 1:
             pass  # just wait, until the sync pin is set
 
         if ((pi.read_bank_1() >> SYNC_PIN) & 1) == 1:
 
-            #(num_bytes, data_read) = pi.spi_read(spi, 2)
-            (num_bytes, data_read) = (2, b'\x01\x00')  #for debug
+            (new_mode, new_submode) = request_mode_SPI()
 
-            #if DEBUG_MODE:
-                #print("debug -", "num_bytes:", num_bytes, "data_read:", data_read, "pi.read_bank_1:", pi.read_bank_1())
-
-
-            # check if the mode was unchanged (on arduino)
             is_modes_changed = True
-            if num_bytes == 2:
-                new_mode = int.from_bytes(data_read[0:1], byteorder='little')
-                new_submode = int.from_bytes(data_read[1:2], byteorder='little')
-                if mode == new_mode and submode[mode] == new_submode:
-                    is_modes_changed = False
-                if DEBUG_MODE:
-                    print("debug -", "change:", is_modes_changed, "new_mode:", new_mode, "new_submode:", new_submode, "prev_mode:", mode, "prev_submode:", submode[mode])
-                mode = new_mode
-                submode[mode] = new_submode
+            if mode == new_mode and submode[mode] == new_submode:
+                is_modes_changed = False
+            if DEBUG_MODE:
+                print("debug -", "change:", is_modes_changed, "new_mode:", new_mode, "new_submode:", new_submode, "prev_mode:", mode, "prev_submode:", submode[mode])
+            mode = new_mode
+            submode[mode] = new_submode
 
             if (mode == 3):  #mode for stream from NES/video
 
@@ -150,23 +169,25 @@ while True:
                     send_SPI(data_enc)
             else:  #mode == 0  # no stream
                 if DEBUG_MODE:
+                    timeproc = timesend = datetime.datetime.now()
+                if DEBUG_MODE:
                     print("debug -", "Nothing to see here")
                 pass
 
 
         timefin = datetime.datetime.now()
-        waittime = max(0.0, (POLL_GRACE_PERIOD) - ((timefin - timestart).microseconds*0.000001))
+        waittime = max(0.0, (POLL_GRACE_PERIOD) - ((timefin - timestart).microseconds*0.000001 + (timefin - timestart).seconds))
 
         if DEBUG_MODE:
 
             if timeproc > timesend:
-                handshake_delta_t = (timesend - timestart).microseconds/1000
-                send_delta_t = (timeproc - timesend).microseconds/1000
-                proc_delta_t = (timefin - timeproc).microseconds/1000
+                handshake_delta_t = (timesend - timestart).microseconds/1000 + (timesend - timestart).seconds*1000
+                send_delta_t = (timeproc - timesend).microseconds/1000 + (timeproc - timesend).seconds*1000
+                proc_delta_t = (timefin - timeproc).microseconds/1000 + (timefin - timeproc).seconds*1000
             else:
-                handshake_delta_t = (timeproc - timestart).microseconds/1000
-                proc_delta_t = (timesend - timeproc).microseconds/1000
-                send_delta_t = (timefin - timesend).microseconds/1000
+                handshake_delta_t = (timeproc - timestart).microseconds/1000 + (timeproc - timestart).seconds*1000
+                proc_delta_t = (timesend - timeproc).microseconds/1000 + (timesend - timeproc).seconds*1000
+                send_delta_t = (timefin - timesend).microseconds/1000 + (timefin - timesend).seconds*1000
 
             print("debug -", "arduino mode:", mode, "submode:", submode[0],
                   "handshake_t:", "{0:.2f}".format(round(handshake_delta_t,2)),
