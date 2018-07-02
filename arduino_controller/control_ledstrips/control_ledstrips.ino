@@ -86,15 +86,11 @@ const uint8_t statusBrightness = 127;  // brightness for STATUS leds [0,255]
 int state = 0;
 
 byte data[NUM_BYTES_STREAM];
-//byte dataImage[NUM_BYTES_ISTREAM];
-//byte dataImage[NUM_BYTES_ISTREAM];
-// uint8_t data[NUM_BYTES_VSTREAM];
-// uint8_t dataImage[NUM_BYTES_ISTREAM];
+
 // for SPI:
 volatile int spi_pos = 0;
 volatile boolean process_it = false;
 bool sync_is_high = false;
-bool sync_is_preparing = false;
 
 void setup() {
   for (int i = 0; i < NUM_BUTTONS; i++) {
@@ -112,30 +108,23 @@ void setup() {
   pinMode(SWITCH_PARENTAL_LOCK_1, INPUT_PULLUP);
   pinMode(SWITCH_PARENTAL_LOCK_2, INPUT_PULLUP);
 
-  //  Communication via UART
-  // Use RX1 (18) & TX1 (19)!!!
-  // Serial1.begin(230400); // 57600 115200 230400
-  // Serial1.setTimeout(WAITTIME_VSTREAM); // ms 40 1000
-
   //  Communication via SPI
   // turn on SPI in slave mode
   SPCR |= bit (SPE);
+  // turn on interrupts
+  SPCR |= _BV(SPIE);
   // have to send on master in, *slave out*
   pinMode(MISO, OUTPUT);
   pinMode(MOSI, OUTPUT);
   pinMode(SYNC_PIN, OUTPUT);
   digitalWrite(SYNC_PIN, LOW);
-  // get ready for an interrupt
-  spi_pos = 0;   // buffer empty
-  process_it = false;
-  // now turn on interrupts
-  SPI.attachInterrupt();
+  //SPI.attachInterrupt();
 
-  if (DEBUG_MODE) {
-    Serial.begin(115200); // 57600 115200 230400
-    Serial.setTimeout(33); 
-    Serial.println("Go!");
-  }
+//  if (DEBUG_MODE) {
+//    Serial.begin(115200); // 57600 115200 230400
+//    Serial.setTimeout(33);
+//    Serial.println("Go!");
+//  }
 
   // Set up LEDS
   if (NUM_LEDS_H > 0) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_0, GRB>(leds[0], NUM_LEDS_V);
@@ -168,7 +157,11 @@ void setup() {
   // setPaletteNES();
 
   delay(100);
-  sync_is_preparing = true;
+
+  spi_pos = 0;   // buffer empty
+  process_it = false;
+  sync_is_high = true;
+  digitalWrite(SYNC_PIN, HIGH);
 }
 
 void loop() {
@@ -214,32 +207,37 @@ void loop() {
 
 // SPI interrupt routine
 ISR (SPI_STC_vect) {
-
-//  // https://arduino.stackexchange.com/questions/33086/how-do-i-send-a-string-from-an-arduino-slave-using-spi
-//  if (sync_is_preparing) {
-//    SPDR = mode<<8 | submode[mode];
-//    sync_is_preparing = false;
-//    spi_pos = 0;
-//    sync_is_high = true;
-//    process_it = false;
-//    digitalWrite(SYNC_PIN, HIGH);
-//  }
+// https://arduino.stackexchange.com/questions/16348/how-do-you-use-spi-on-an-arduino
+// https://i.imgur.com/vN4xzvh.gif
+// https://arduino.stackexchange.com/questions/33086/how-do-i-send-a-string-from-an-arduino-slave-using-spi
 
   byte c = SPDR;  // grab byte from SPI Data Register
+
+  if (sync_is_high) {
+    // if we are in this state, we only take read one dummy byte
+    // and respond by sending the current mode and submode as byte
+    // afterwards we are ready for receiving the real data
+    digitalWrite(SYNC_PIN, LOW);
+    sync_is_high = false;
+    SPDR = encodeMode2Byte();
+    return;
+  }
 
   if (process_it) {
     return;
   }
-  if (sync_is_high) {
-    digitalWrite(SYNC_PIN, LOW);
-    sync_is_high = false;
-  }
 
   if (spi_pos < NUM_BYTES_STREAM) {
-    data[spi_pos] = c;
-    spi_pos++;
+    data[spi_pos++] = c;
     process_it = (spi_pos == NUM_BYTES_STREAM);
   }
+
+  return;
+}
+
+byte encodeMode2Byte() {
+  // first two bits code the mode and remaining 6 bits code the submode
+  return (mode << 6) | submode[mode];
 }
 
 void delayAwake(int time) {
@@ -332,12 +330,19 @@ void showStream() {
   elapsedTime = 0;
 
   if (process_it) {
+    // full data package was successfull received
     for (int i = 0; i < NUM_LEDS_H; i++) {
       for (int j = 0; j < NUM_LEDS_V; j++) {
         leds[i][NUM_LEDS_V - 1 - j] = CRGB(data[(i * NUM_LEDS_V + j) * 3 + 0], data[(i * NUM_LEDS_V + j) * 3 + 1], data[(i * NUM_LEDS_V + j) * 3 + 2]);
       }
     }
     FastLED.show();
+    state = 1;
+    spi_pos = 0;
+    process_it = false;
+    // get ready to receive another request
+    sync_is_high = true;
+    digitalWrite(SYNC_PIN, HIGH);
   }
   else {
     state += 1;
@@ -349,26 +354,14 @@ void showStream() {
         }
       }
       FastLED.show();
+      state = 1;
+      spi_pos = 0;
+      // get ready to receive another request
+      sync_is_high = true;
+      digitalWrite(SYNC_PIN, HIGH);
     }
   }
-  if (process_it || state >= loopsUntilTimeOut) {
-    // data was either successfully received or we waited until timeout
-    state = 1;
-    // get ready to receive another package
-    sync_is_preparing = true;
-  }
-  if (sync_is_preparing) {
-    // inform the raspi master about the mode and submode
-    //TODO: arduino seems to hung up on the next command:
-//    SPI.transfer16(mode<<8 | submode[mode]);
-    //TODO: perhaps the whole scheme is wrong and this needs to go into the interupt as well!
-//    SPDR = mode<<8 | submode[mode];
-    sync_is_preparing = false;
-    spi_pos = 0;
-    sync_is_high = true;
-    process_it = false;
-    digitalWrite(SYNC_PIN, HIGH);
-  }
+
   timedDelay(waitingTime);
 }
 

@@ -19,7 +19,7 @@ overall costs: 18 - 28 ms
 
 class StreamNES:
 
-    def __init__(self, _num_leds_h=16, _num_leds_v=24):
+    def __init__(self, _num_leds_h=16, _num_leds_v=24, feedback=False):
         self.num_leds_h = _num_leds_h
         self.num_leds_v = _num_leds_v
         self.leds = np.zeros((_num_leds_v, _num_leds_h, 3)) #should be not necessary
@@ -30,6 +30,10 @@ class StreamNES:
         self.format = 'UYVY'
         self.b = 3  # 3 2
         #self.color = '' #''smpte170'
+        if (feedback):
+            fb = 'verbose'
+        else:
+            fb = 'silent'
 
         self.scale = 1.
         self.device = '/dev/video0'
@@ -39,8 +43,8 @@ class StreamNES:
         self.game = NesTetris(_num_leds_h=_num_leds_h, _num_leds_v=_num_leds_v)
 
         os.system(
-        'v4l2-ctl -d {device} -s {m} --set-fmt-video width={w},height={h},pixelformat={f}'.format(
-            device=self.device, m=self.mode, w=self.w, h=self.h, f=self.format))
+        'v4l2-ctl -d {device} -s {m} --set-fmt-video width={w},height={h},pixelformat={pf} --{fb}'.format(
+            device=self.device, m=self.mode, w=self.w, h=self.h, pf=self.format, fb=fb))
         #self.frame = Frame(self.device)
         self.frame = Camera(self.device)
 
@@ -148,7 +152,7 @@ if __name__ == "__main__":
     is_visdom = False
     # command line:$ pyton3 -m visdom.server
     WAITTIME_VSTREAM = 0.040  # 40 ms
-    stream = StreamNES()
+    stream = StreamNES(feedback=True)
 
     visd_server = 'http://localhost'
     if is_visdom:
