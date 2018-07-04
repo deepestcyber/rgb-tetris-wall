@@ -60,11 +60,10 @@ CRGB leds[NUM_LEDS_H][NUM_LEDS_V];
 
 // Set up Status LEDS
 //CRGB status_leds[NUM_STATUS_LEDS];
-//Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, STATUS_LEDS_PIN, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, A0, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, STATUS_LEDS_PIN, NEO_GRB + NEO_KHZ800);
 
 // modes: 0 = light patterns, 1 = image stream (24bit), 2 = music patterns, 3 = NES video stream
-uint8_t mode = 3;
+uint8_t mode = 1;
 uint8_t modeMax = 4;
 uint8_t submode [4] = {1, 5, 0, 0};
 uint8_t submodeMax [4] = {64, 11, 4, 1}; // Used for all mode switches
@@ -83,7 +82,7 @@ int loopsUntilTimeOut = 100;
 uint8_t pspeed = 2; // [0..4]
 uint8_t cspeed = 255;
 uint8_t brightness = 2; // [0..4]
-const uint8_t valueBrightness [5] = {9, 17, 37, 95, 252}; // {3, 9, 27, 81, 243} // brightness for wall leds [0,255]
+const uint8_t valueBrightness [5] = {12, 26, 55, 118, 252}; // brightness for wall leds [0,255] // {9, 17, 37, 95, 252} {3, 9, 27, 81, 243}
 const uint8_t statusBrightness = 127;  // brightness for STATUS leds [0,255]
 // const int valueb [5][4] = {{3, 9, 27, 81}, {4, 12, 36, 108}, {5, 15, 45, 135}, {7, 21, 63, 189}, {9, 27, 81, 243}};  // deprecated
 
@@ -92,7 +91,6 @@ int state = 0;
 byte data[NUM_BYTES_STREAM];
 
 // for SPI:
-volatile byte SPI_mode = 0;
 volatile int spi_pos = 0;
 volatile bool process_it = false;
 volatile bool sync_is_high = false;
@@ -165,9 +163,9 @@ void setup() {
 
   delay(100);
 
-  SPI_mode = encodeMode2Byte();
   spi_pos = 0;   // buffer empty
   process_it = false;
+  SPDR = encodeMode2Byte();
   sync_is_high = true;
   digitalWrite(SYNC_PIN, HIGH);
 }
@@ -224,9 +222,9 @@ ISR (SPI_STC_vect) {
   byte c = SPDR;  // grab byte from SPI Data Register
 
   if (sync_is_high) {
-    // if we are in this state, we only read one dummy byte
-    // and respond by sending the current mode and submode as byte
-    // afterwards we are ready for receiving the real data
+    // if the slave is in this state, the master is supposed to only read one byte
+    // from the register that is encoding the current mode and submode
+    // afterwards the slave is ready for receiving the real data
     digitalWrite(SYNC_PIN, LOW);
     sync_is_high = false;
   }
@@ -241,7 +239,7 @@ ISR (SPI_STC_vect) {
       }
   }
 
-  SPDR = SPI_mode; // put current mode and submode as byte to SPI Data Register
+  //SPDR = SPI_mode; // put current mode and submode as byte to SPI Data Register
 
   return;
 }
@@ -332,8 +330,8 @@ void updateStatus() {
   status_leds.setPixelColor(4, getNeoPixelWheel((180/5*(5-brightness-1)%180) & 255));
   status_leds.setPixelColor(6, getNeoPixelWheel((180/5*pspeed%180) & 255));
 
-  status_leds.setBrightness((int)photoRSTState/1023.*valueBrightness[brightness]*0.5);
-  //status_leds.show();
+  status_leds.setBrightness((int)photoRSTState/1023.*valueBrightness[brightness]*0.66);
+  if (mode == 0 || process_it) status_leds.show();
 }
 
 //void sssetNeoPixelHSV(
@@ -365,11 +363,11 @@ void showStream() {
       }
     }
     FastLED.show();
-    SPI_mode = encodeMode2Byte();
     state = 1;
     spi_pos = 0;
     process_it = false;
-    // get ready to receive another request
+    // get ready to receive the next request
+    SPDR = encodeMode2Byte();
     sync_is_high = true;
     digitalWrite(SYNC_PIN, HIGH);
   }
@@ -383,10 +381,10 @@ void showStream() {
         }
       }
       FastLED.show();
-      SPI_mode = encodeMode2Byte();
       state = 1;
       spi_pos = 0;
-      // get ready to receive another request
+      // get ready to retry another request
+      SPDR = encodeMode2Byte();
       sync_is_high = true;
       digitalWrite(SYNC_PIN, HIGH);
     }

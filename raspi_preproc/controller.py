@@ -45,7 +45,7 @@ pi = pigpio.pi()
 if not pi.connected:
     print("could not connect SPI")
     exit()
-spi = pi.spi_open(0, 487500, 0)  # 243750 487500 975000
+spi = pi.spi_open(0, 500000, 0)  # 243750 487500 975000 1950000
 
 # initialise pin to arduino for flagging synchronisation
 SYNC_PIN = 24  # GPIO pin numbers
@@ -65,14 +65,22 @@ def decodeByte2Mode(byte):
     # first two bits code the mode and remaining 6 bits code the submode
     return byte >> 6, byte & ~(3 << 6)
 
-def request_mode_SPI():
-    (num, byte) = pi.spi_xfer(spi, b'\x07')
+# def request_mode_SPI():
+#     (num, byte) = pi.spi_xfer(spi, b'\x07')
+#     if num == 1:
+#         mode, submode = decodeByte2Mode(byte[0])
+#         if DEBUG_MODE:
+#             print("debug -", "requested mode", "received_data:", num, byte[0], "received_mode:", mode, "received_submode:", submode)
+#         return (mode, submode)
+#     return 0, 0
+
+def read_mode_SPI():
+    (num, byte) = pi.spi_read(spi, 1)
     if num == 1:
         mode, submode = decodeByte2Mode(byte[0])
         if DEBUG_MODE:
-            print("debug -", "requested mode", "received_data:", num, byte[0], "received_mode:", mode, "received_submode:", submode)
+            print("debug -", "read mode", "received_data:", num, byte[0], "received_mode:", mode, "received_submode:", submode)
         return (mode, submode)
-    return 0, 0
 
 def send_SPI(data):
     if DEBUG_MODE:
@@ -93,8 +101,9 @@ while True:
 
         if ((pi.read_bank_1() >> SYNC_PIN) & 1) == 1:
 
-            (new_mode, new_submode) = request_mode_SPI()
-            time.sleep(0.001)
+            #(new_mode, new_submode) = request_mode_SPI()
+            #time.sleep(0.001)
+            (new_mode, new_submode) = read_mode_SPI()
 
             is_modes_changed = True
             if mode == new_mode and submode[mode] == new_submode:
