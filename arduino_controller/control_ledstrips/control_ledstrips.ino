@@ -1,6 +1,8 @@
 
 // Designed for Arduino Mega
 
+#include "Adafruit_NeoPixel.h"
+#include "hsv2rgb.h"
 #include "FastLED.h"
 #include "elapsedMillis.h"
 #include "SPI.h"
@@ -30,26 +32,24 @@
 #define PHOTO_RST_PIN A4
 #define SWITCH_PARENTAL_LOCK_1 A6 // Switch to turn off all buttons
 #define SWITCH_PARENTAL_LOCK_2 A7 // Switch to turn off mode button
-#define BUTTON_MDP_INC A8 // Mode switch
-#define BUTTON_MDP_INC A8 // Mode switch
-#define BUTTON_MDP_DEC A9 // Mode switch
-#define BUTTON_MDS_INC A10 // Decrement submode
-#define BUTTON_MDS_DEC A11 // Increment submode
+#define BUTTON_MDP_DEC A8 // Decrement Mode
+#define BUTTON_MDP_INC A9 // Increment Mode
+#define BUTTON_MDS_DEC A10 // Decrement submode
+#define BUTTON_MDS_INC A11 // Increment submode
 #define BUTTON_BRS_DEC A12 // Decrement brightness
 #define BUTTON_BRS_INC A13 // Increment brightness
 #define BUTTON_SPD_DEC A14 // Decrement pattern speed
-#define BUTTON_SPD_INC A15 // Increment pattern speed
-#define MODEL_PIXELS WS2812B // WS2811, WS2812b
-#define MODEL_STATUS WS2812B // WS2812b, WS2811
+#define BUTTON_SPD_INC A15 // IncremNUM_STATUS_LEDSent pattern speed
+#define MODEL_PIXELS WS2812B // WS2811, WS2812b // Fastled
+#define MODEL_STATUS NEO_GRB + NEO_KHZ800 // NEO_GRB + NEO_KHZ800 // NeoPixel
 #define NUM_LEDS_H 16 // 16
 #define NUM_LEDS_V 24 // 24
 #define NUM_BUTTONS 8 // 8
-#define NUM_STATUS_LEDS 12 // 4
+#define NUM_STATUS_LEDS 7 // 4
 #define BUTTON_WAIT 40 // time (ms) to wait for another buttoncheck
-#define NUM_FPS_VSTREAM 25
-#define WAITTIME_VSTREAM 40 // in ms for NES video stream
-#define WAITTIME_ASTREAM 40 // in ms for beat detection stream
-#define WAITTIME_ISTREAM 80 // in ms for Image stream
+#define WAITTIME_VSTREAM 40 // in ms for NES video stream -> 25 fps
+#define WAITTIME_ASTREAM 40 // in ms for beat detection stream -> 25 fps
+#define WAITTIME_ISTREAM 200 // in ms for Image stream -> 5 fps
 #define TIMEOUT_VSTREAM 2000 // in ms for NES video stream
 #define TIMEOUT_ASTREAM 2000 // in ms for beat detection stream
 #define TIMEOUT_ISTREAM 10000 // in ms for Image stream
@@ -57,13 +57,17 @@
 #define NUM_BYTES_STREAM 1152 // 288 // NUM_LEDS_H*NUM_LEDS_V*NUM_BITS_VSTREAM/8;
 
 CRGB leds[NUM_LEDS_H][NUM_LEDS_V];
-CRGB status_leds[NUM_STATUS_LEDS];
+
+// Set up Status LEDS
+//CRGB status_leds[NUM_STATUS_LEDS];
+//Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, STATUS_LEDS_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, A0, NEO_GRB + NEO_KHZ800);
 
 // modes: 0 = light patterns, 1 = image stream (24bit), 2 = music patterns, 3 = NES video stream
 uint8_t mode = 1;
 uint8_t modeMax = 4;
-uint8_t submode [4] = {0, 0, 0, 0};
-uint8_t submodeMax [4] = {64, 1, 1, 1}; // Used for all mode switches
+uint8_t submode [4] = {1, 5, 0, 0};
+uint8_t submodeMax [4] = {64, 11, 4, 1}; // Used for all mode switches
 
 int photoRSTState = 0;      // photo resistor for regulating brightness
 float photoLeakeRate = 0.9; // for smoothing the photo resistor [0,1]
@@ -89,8 +93,8 @@ byte data[NUM_BYTES_STREAM];
 
 // for SPI:
 volatile int spi_pos = 0;
-volatile boolean process_it = false;
-bool sync_is_high = false;
+volatile bool process_it = false;
+volatile bool sync_is_high = false;
 
 void setup() {
   for (int i = 0; i < NUM_BUTTONS; i++) {
@@ -110,12 +114,12 @@ void setup() {
 
   //  Communication via SPI
   // turn on SPI in slave mode
-  SPCR |= bit (SPE);
+  SPCR |= _BV(SPE);
   // turn on interrupts
   SPCR |= _BV(SPIE);
   // have to send on master in, *slave out*
   pinMode(MISO, OUTPUT);
-  pinMode(MOSI, OUTPUT);
+  //pinMode(MOSI, OUTPUT);
   pinMode(SYNC_PIN, OUTPUT);
   digitalWrite(SYNC_PIN, LOW);
   //SPI.attachInterrupt();
@@ -145,11 +149,13 @@ void setup() {
   if (NUM_LEDS_H > 15) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_15, GRB>(leds[15], NUM_LEDS_V);
 
   // Set up Status LEDS
-  FastLED.addLeds<MODEL_STATUS, STATUS_LEDS_PIN, GRB>(status_leds, NUM_STATUS_LEDS);
-
-  for (int i = 0; i < NUM_STATUS_LEDS; i++) {
-    status_leds[i] = CHSV(0, 0, 0);
-  }
+//  FastLED.addLeds<MODEL_STATUS, STATUS_LEDS_PIN, GRB>(status_leds, NUM_STATUS_LEDS);
+//  for (int i = 0; i < NUM_STATUS_LEDS; i++) {
+//    status_leds[i] = CHSV(0, 0, 0);
+//    status_leds.setPixelColor(i, 0, 0, 0);
+//  }
+  status_leds.begin();
+  status_leds.show();
 
   for (int i = 0; i < NUM_BYTES_STREAM; i++) {
     data[i] = 0;
@@ -176,6 +182,8 @@ void loop() {
   // mode - sound activation (hardcoded) - shows pattern accourding to a microphon signal
   else if (mode == 2) {
     // TODO
+    elapsedTime = 0;
+    timedDelay(WAITTIME_ASTREAM);
   }
 
   // mode - image stream: one frame with 24 bit/px (at max every 80ms)
@@ -214,30 +222,32 @@ ISR (SPI_STC_vect) {
   byte c = SPDR;  // grab byte from SPI Data Register
 
   if (sync_is_high) {
-    // if we are in this state, we only take read one dummy byte
+    // if we are in this state, we only read one dummy byte
     // and respond by sending the current mode and submode as byte
     // afterwards we are ready for receiving the real data
     digitalWrite(SYNC_PIN, LOW);
     sync_is_high = false;
-    SPDR = encodeMode2Byte();
-    return;
+  }
+  else {
+      if (process_it) {
+        return;
+      }
+
+      if (spi_pos < NUM_BYTES_STREAM) {
+        data[spi_pos++] = c;
+        process_it = (spi_pos == NUM_BYTES_STREAM);
+      }
   }
 
-  if (process_it) {
-    return;
-  }
-
-  if (spi_pos < NUM_BYTES_STREAM) {
-    data[spi_pos++] = c;
-    process_it = (spi_pos == NUM_BYTES_STREAM);
-  }
+  SPDR = encodeMode2Byte(); // put current mode and submode as byte to SPI Data Register
 
   return;
 }
 
 byte encodeMode2Byte() {
   // first two bits code the mode and remaining 6 bits code the submode
-  return (mode << 6) | submode[mode];
+  //return ((mode << 6) | submode[mode]);
+  return ((mode << 6) | (spi_pos%64));
 }
 
 void delayAwake(int time) {
@@ -300,15 +310,32 @@ void updateStatus() {
   FastLED.setBrightness((int)photoRSTState/1023.*valueBrightness[brightness]);
 
   // set Status LEDS:
-  if (mode == 3) status_leds[0] = CHSV(60, 255, statusBrightness);
-  else if (mode == 2) status_leds[0] = CHSV(96, 255, statusBrightness);
-  else if (mode == 1) status_leds[0] = CHSV(160, 255, statusBrightness);
-  else status_leds[0] = CHSV(0, 255, statusBrightness);
-  
-  status_leds[2] = CHSV(256/submodeMax[mode]*(submodeMax[mode]-submode[mode]-1)%256, 255, statusBrightness);
-  status_leds[4] = CHSV(200/5*(5-brightness-1)%200, 255, statusBrightness);
-  status_leds[6] = CHSV(200/5*pspeed%200, 255, statusBrightness);
+
+//  //FastLED:
+//  if (mode == 3) status_leds[0] = CHSV(60, 255, statusBrightness);
+//  else if (mode == 2) status_leds[0] = CHSV(96, 255, statusBrightness);
+//  else if (mode == 1) status_leds[0] = CHSV(160, 255, statusBrightness);
+//  else status_leds[0] = CHSV(0, 255, statusBrightness);
+//
+//  status_leds[2] = CHSV(256/submodeMax[mode]*(submodeMax[mode]-submode[mode]-1)%256, 255, statusBrightness);
+//  status_leds[4] = CHSV(200/5*(5-brightness-1)%200, 255, statusBrightness);
+//  status_leds[6] = CHSV(200/5*pspeed%200, 255, statusBrightness);
+
+  //NeoPixel:
+  if (mode == 3) status_leds.setPixelColor(0, getNeoPixelWheel(42 & 255));
+  else if (mode == 2) status_leds.setPixelColor(0, getNeoPixelWheel(85 & 255));
+  else if (mode == 1) status_leds.setPixelColor(0, getNeoPixelWheel(171 & 255));
+  else status_leds.setPixelColor(0, getNeoPixelWheel(0 & 255));
+
+  status_leds.setPixelColor(2, getNeoPixelWheel((256/submodeMax[mode]*(submodeMax[mode]-submode[mode]-1)%256) & 255));
+  status_leds.setPixelColor(4, getNeoPixelWheel((180/5*(5-brightness-1)%180) & 255));
+  status_leds.setPixelColor(6, getNeoPixelWheel((180/5*pspeed%180) & 255));
+
+  status_leds.setBrightness((int)photoRSTState/1023.*valueBrightness[brightness]*0.5);
+  //status_leds.show();
 }
+
+//void sssetNeoPixelHSV(
 
 void timedDelay(int waitTime) {
   checkButtons();
@@ -337,6 +364,7 @@ void showStream() {
       }
     }
     FastLED.show();
+    delayAwake(2);
     state = 1;
     spi_pos = 0;
     process_it = false;
@@ -354,6 +382,7 @@ void showStream() {
         }
       }
       FastLED.show();
+      delayAwake(2);
       state = 1;
       spi_pos = 0;
       // get ready to receive another request
@@ -456,6 +485,21 @@ void glitter(){
 
 // ------ Tools ------
 
+//Method from NeoPixel to get display a certain hue value
+// Input a value 0 to 255 to get a color value.
+// The colours are a transition r - g - b - back to r.
+uint32_t getNeoPixelWheel(byte WheelPos) {
+  WheelPos = 255 - WheelPos;
+  if(WheelPos < 85) {
+    return status_leds.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+  }
+  if(WheelPos < 170) {
+    WheelPos -= 85;
+    return status_leds.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+  }
+  WheelPos -= 170;
+  return status_leds.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+}
 
 // ------ Depricated code ------
 // TODO: define a good color palette - perhaps like NES? // depricated

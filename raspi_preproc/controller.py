@@ -34,8 +34,8 @@ USBPORT = '/dev/ttyACM0'  # check correct port first
 NUM_LEDS_H = 16  # 16
 NUM_LEDS_V = 24  # 24
 FPS = 25
-POLL_GRACE_PERIOD = 0.1  # mainly for debug.
-waittime_until_next_image = 0.5  # change the random image every 5 minutes
+POLL_GRACE_PERIOD = 0.001  # mainly for debug.
+waittime_until_next_image = 2.0  # change the random image every 5 minutes
 time_last_istream_change = datetime.datetime.now()
 
 b64dict = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -45,7 +45,7 @@ pi = pigpio.pi()
 if not pi.connected:
     print("could not connect SPI")
     exit()
-spi = pi.spi_open(0, 460800, 0)  # 460800 691200 921600
+spi = pi.spi_open(0, 487500, 0)  # 487500 975000 2000000 460800 691200 921600
 
 # initialise pin to arduino for flagging synchronisation
 SYNC_PIN = 24  # GPIO pin numbers
@@ -59,13 +59,14 @@ iloader = ImageLoader(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
 strmnes = StreamNES(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
 abeatd = AudioBeatdetection(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
 
+time.sleep(0.4)  # some needed initial delay
 
 def decodeByte2Mode(byte):
     # first two bits code the mode and remaining 6 bits code the submode
-    return byte >> 6, byte &~ (3<<6)
+    return byte >> 6, byte & ~(3 << 6)
 
 def request_mode_SPI():
-    (num, byte) = pi.spi_xfer(spi, b'\x00')
+    (num, byte) = pi.spi_xfer(spi, b'\x07')
     if num == 1:
         mode, submode = decodeByte2Mode(byte[0])
         if DEBUG_MODE:
@@ -136,11 +137,13 @@ while True:
                     timeproc = datetime.datetime.now()
 
                 #TODO calculate LEDS
+                leds = np.zeros((NUM_LEDS_H, NUM_LEDS_V, 3), dtype='uint8')
 
                 if DEBUG_MODE:
                     timesend = datetime.datetime.now()
                 data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
                 send_SPI(data_enc)
+
 
             elif (mode == 1):  # mode for stream of images
                 if DEBUG_MODE:
@@ -149,30 +152,36 @@ while True:
                 now = datetime.datetime.now()
                 if is_modes_changed or ((now - time_last_istream_change).seconds + (now - time_last_istream_change).microseconds*0.000001 > waittime_until_next_image):
                     if DEBUG_MODE:
-                        print("debug -", "new image:", submode[2],
+                        print("debug -", "new image:", submode[1],
                               "last_image_t:", "{0:.2f}".format(round((now - time_last_istream_change).seconds * 1000 + (now - time_last_istream_change).microseconds / 1000, 2)),
                               "wait_next_image_t:", "{0:.2f}".format(
                                 round(waittime_until_next_image * 1000, 2)),
                               "(ms)")
-                    if submode[2] == 0:
+                    if submode[1] == 0:
                         leds = iloader.load_random_image()
                     else:
-                        leds = iloader.load_numbered_image(submode[2])
-                    #leds = iloader.load_numbered_image(6)
+                        leds = iloader.load_numbered_image(submode[1])
                     time_last_istream_change = datetime.datetime.now()
-                    if DEBUG_MODE:
-                        print("debug -", "leds:", leds.shape)
 
-                    if DEBUG_MODE:
-                        timesend = datetime.datetime.now()
-                    data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
-                    send_SPI(data_enc)
+                if DEBUG_MODE:
+                    print("debug -", "leds:", leds.shape)
+                if DEBUG_MODE:
+                    timesend = datetime.datetime.now()
+                data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
+                send_SPI(data_enc)
+
+
             else:  #mode == 0  # no stream
                 if DEBUG_MODE:
-                    timeproc = timesend = datetime.datetime.now()
+                    timeproc = datetime.datetime.now()
                 if DEBUG_MODE:
                     print("debug -", "Nothing to see here")
                 pass
+                leds = np.zeros((NUM_LEDS_H, NUM_LEDS_V, 3), dtype='uint8')
+                if DEBUG_MODE:
+                    timesend = datetime.datetime.now()
+                data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
+                send_SPI(data_enc)
 
 
         timefin = datetime.datetime.now()
@@ -189,7 +198,7 @@ while True:
                 proc_delta_t = (timesend - timeproc).microseconds/1000 + (timesend - timeproc).seconds*1000
                 send_delta_t = (timefin - timesend).microseconds/1000 + (timefin - timesend).seconds*1000
 
-            print("debug -", "arduino mode:", mode, "submode:", submode[0],
+            print("debug -", "arduino mode:", mode, "submode:", submode[mode],
                   "handshake_t:", "{0:.2f}".format(round(handshake_delta_t,2)),
                   "process_t:", "{0:.2f}".format(round(proc_delta_t,2)),
                   "send_t:", "{0:.2f}".format(round(send_delta_t,2)),
@@ -203,6 +212,8 @@ while True:
 if DEBUG_MODE:
     print("debug -", "raspberry PI preprocessing - closing")
 
+time.sleep(0.2)
 pi.spi_close(spi)
+time.sleep(0.2)
 pi.stop()
 
