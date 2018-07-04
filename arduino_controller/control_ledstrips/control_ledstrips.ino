@@ -64,7 +64,7 @@ CRGB leds[NUM_LEDS_H][NUM_LEDS_V];
 Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, A0, NEO_GRB + NEO_KHZ800);
 
 // modes: 0 = light patterns, 1 = image stream (24bit), 2 = music patterns, 3 = NES video stream
-uint8_t mode = 1;
+uint8_t mode = 3;
 uint8_t modeMax = 4;
 uint8_t submode [4] = {1, 5, 0, 0};
 uint8_t submodeMax [4] = {64, 11, 4, 1}; // Used for all mode switches
@@ -92,6 +92,7 @@ int state = 0;
 byte data[NUM_BYTES_STREAM];
 
 // for SPI:
+volatile byte SPI_mode = 0;
 volatile int spi_pos = 0;
 volatile bool process_it = false;
 volatile bool sync_is_high = false;
@@ -164,6 +165,7 @@ void setup() {
 
   delay(100);
 
+  SPI_mode = encodeMode2Byte();
   spi_pos = 0;   // buffer empty
   process_it = false;
   sync_is_high = true;
@@ -239,15 +241,14 @@ ISR (SPI_STC_vect) {
       }
   }
 
-  SPDR = encodeMode2Byte(); // put current mode and submode as byte to SPI Data Register
+  SPDR = SPI_mode; // put current mode and submode as byte to SPI Data Register
 
   return;
 }
 
 byte encodeMode2Byte() {
   // first two bits code the mode and remaining 6 bits code the submode
-  //return ((mode << 6) | submode[mode]);
-  return ((mode << 6) | (spi_pos%64));
+  return ((mode << 6) | submode[mode]);
 }
 
 void delayAwake(int time) {
@@ -364,7 +365,7 @@ void showStream() {
       }
     }
     FastLED.show();
-    delayAwake(2);
+    SPI_mode = encodeMode2Byte();
     state = 1;
     spi_pos = 0;
     process_it = false;
@@ -382,7 +383,7 @@ void showStream() {
         }
       }
       FastLED.show();
-      delayAwake(2);
+      SPI_mode = encodeMode2Byte();
       state = 1;
       spi_pos = 0;
       // get ready to receive another request

@@ -97,8 +97,9 @@ class StreamNES:
             frame_data = self.frame.get_frame()
             if len(frame_data) == self.w * self.h * self.b:
                 break
-            else:
-                print("debug - ", "frame not correct", "frame_data_len:", len(frame_data))
+        else:
+            print("debug - ", "frame not correct", "frame_data_len:",
+                  len(frame_data))
         return frame_data
     def read_frame2(self, frame_data):
         #img = self.Frame_UYVY2YCbCr_PIL(self.w, self.h, frame_data)

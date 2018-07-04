@@ -45,7 +45,7 @@ pi = pigpio.pi()
 if not pi.connected:
     print("could not connect SPI")
     exit()
-spi = pi.spi_open(0, 487500, 0)  # 487500 975000 2000000 460800 691200 921600
+spi = pi.spi_open(0, 487500, 0)  # 243750 487500 975000
 
 # initialise pin to arduino for flagging synchronisation
 SYNC_PIN = 24  # GPIO pin numbers
@@ -94,6 +94,7 @@ while True:
         if ((pi.read_bank_1() >> SYNC_PIN) & 1) == 1:
 
             (new_mode, new_submode) = request_mode_SPI()
+            time.sleep(0.001)
 
             is_modes_changed = True
             if mode == new_mode and submode[mode] == new_submode:
