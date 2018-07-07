@@ -20,11 +20,20 @@ import datetime
 import numpy as np
 import pigpio
 import time
+import sys
+from utils_ui import Logger
 from stream_nes import StreamNES
 from image_loader import ImageLoader
 from audio_beatdetection import AudioBeatdetection
 
-DEBUG_MODE = True
+DEBUG_MODE = False
+
+exptime = datetime.datetime.now()
+log_out_file = "logs/log_" + exptime.strftime("%y%m%d%H%M") + ".txt"
+sys.stdout = Logger(output_file=log_out_file)
+is_first_loop = True
+
+print("rgb-tetris-wall raspi reprocessing - start -", exptime.strftime("%y%m%d%H%M"))
 
 if DEBUG_MODE:
     print("debug -", "raspberry PI preprocessing - start")
@@ -35,7 +44,7 @@ NUM_LEDS_H = 16  # 16
 NUM_LEDS_V = 24  # 24
 FPS = 25
 POLL_GRACE_PERIOD = 0.001  # mainly for debug.
-waittime_until_next_image = 2.0  # change the random image every 5 minutes
+waittime_until_next_image = 30.0  # change the random image every 5 minutes
 time_last_istream_change = datetime.datetime.now()
 
 b64dict = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
@@ -110,6 +119,11 @@ while True:
                 is_modes_changed = False
             if DEBUG_MODE:
                 print("debug -", "change:", is_modes_changed, "new_mode:", new_mode, "new_submode:", new_submode, "prev_mode:", mode, "prev_submode:", submode[mode])
+            else:
+                if (is_first_loop):  #just for logging
+                    is_first_loop = False
+                    print("first read mode byte from arduino -", "new_mode:", new_mode, "new_submode:", new_submode)
+
             mode = new_mode
             submode[mode] = new_submode
 

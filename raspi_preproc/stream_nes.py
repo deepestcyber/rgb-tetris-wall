@@ -1,7 +1,7 @@
 import os
 import base64
 import numpy as np
-from pyv4l2.frame import Frame
+#from pyv4l2.frame import Frame
 from PyV4L2Camera.camera import Camera
 from PIL import Image
 from PIL import ImageFilter
