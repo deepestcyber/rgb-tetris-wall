@@ -1,4 +1,4 @@
-pyv4l2
+PyV4L2Camera
 numpy
 Pillow
 base64
