@@ -1,18 +1,21 @@
 from PIL import Image
 from PIL import ImageFilter
 
-_FORMAT = "HSV"
+_FORMAT = "RGB" #HSV
 
 
 class NesTetris:
 
 
-    def __init__(self, _num_leds_h=16, _num_leds_v=24, _gray=(95, 7, 128)):
+    #def __init__(self, _num_leds_h=16, _num_leds_v=24, _gray=(95, 7, 128)):  #RGB
+    def __init__(self, _num_leds_h=16, _num_leds_v=24, _gray=(116, 116, 108)):  #HSV
+
         self.num_h = _num_leds_h
         self.num_v = _num_leds_v
         self.gray = _gray
         self.black = (0, 0, 0)
 
+        self.hsv_pixel = Image.new("HSV", (1, 1), 0)  # for the score rainbow
         self.img_leds = Image.new(_FORMAT, (_num_leds_h, _num_leds_v), 0)
         #print("debug -", "leds_init:", np.array(self.img_leds, dtype=np.uint8).shape)
 
@@ -58,16 +61,16 @@ class NesTetris:
 
 
     def is_pix_white(self, pix):
-        #if (pix[0] and pix[1] and pix[2]) >= 128: #RGB
-        if (pix[2]) >= 128: #HSV
-                return True
+        if (pix[0] >= 128) and (pix[1] >= 128) and (pix[2] >= 128): #RGB
+        #if (pix[2]) >= 128: #HSV
+            return True
         return False
 
 
     def is_pix_black(self, pix):
-        #if (pix[0] or pix[1] or pix[2]) >= 20: #RGB
-        if (pix[2]) < 48: #HSV
-                return True
+        if (pix[0] < 48) and (pix[1] < 48) and (pix[2] < 48): #RGB
+        #if (pix[2]) < 48: #HSV
+            return True
         return False
 
 
@@ -110,7 +113,7 @@ class NesTetris:
 
 
     def test_pixel(self, img, x, y, is_white=True):
-        pix = img.crop((x, y, x+1, y+1)).convert("HSV").getpixel((0, 0))
+        pix = img.crop((x, y, x+1, y+1)).getpixel((0, 0))
         if is_white:
             return self.is_pix_white(pix)
         else:
@@ -250,7 +253,9 @@ class NesTetris:
         for i in range(max(int(score/12500), 0), 32):
             self.img_leds.putpixel((0 + int(i/2), 0 + i%2), self.black)
         for i in range(min(int(score/12500), 32)):
-            self.img_leds.putpixel((0 + int(i/2), 0 + i%2), (max(186-i*6, 0), 255, 128))
+            self.hsv_pixel.putpixel((0, 0), (max(186-i*6, 0), 255, 128))
+            self.img_leds.putpixel((0 + int(i/2), 0 + i%2), self.hsv_pixel.convert(_FORMAT).getpixel((0,0)))
+            #"self.img_leds.putpixel((0 + int(i/2), 0 + i%2), (max(186-i*6, 0), 255, 128))
 
         #print("debug score", score)
 
@@ -265,7 +270,9 @@ class NesTetris:
         for i in range(max(level, 0), 28):
             self.img_leds.putpixel((12 + int(i/7), 16 + i%7), self.black)
         for i in range(min(level+1,28)):
-            self.img_leds.putpixel((12 + int(i/7), 16 + i%7), (max(180-i*6, 0), 255, 128))
+            self.hsv_pixel.putpixel((0, 0), (max(180-i*6, 0), 255, 128))
+            self.img_leds.putpixel((12 + int(i/7), 16 + i%7), self.hsv_pixel.convert(_FORMAT).getpixel((0,0)))
+            #self.img_leds.putpixel((12 + int(i/7), 16 + i%7), (max(180-i*6, 0), 255, 128))
 
         #print("debug level", level)
 
@@ -281,7 +288,9 @@ class NesTetris:
         for i in range(max(int(lines/10), 0), 28):
             self.img_leds.putpixel((12 + int(i/7), 3 + i%7), self.black)
         for i in range(min(int(lines/10)+1, 28)):
-            self.img_leds.putpixel((12 + int(i/7), 3 + i%7), (max(180-i*6, 0), 255, 128))
+            self.hsv_pixel.putpixel((0, 0), (max(180-i*6, 0), 255, 128))
+            self.img_leds.putpixel((12 + int(i/7), 3 + i%7), self.hsv_pixel.convert(_FORMAT).getpixel((0,0)))
+            #self.img_leds.putpixel((12 + int(i/7), 3 + i%7), (max(180-i*6, 0), 255, 128))
 
         #print("debug lines", lines)
 
@@ -293,19 +302,20 @@ class NesTetris:
             return self.img_leds
 
         # play area
-        self.extract_colours(img.crop((239, 93, 240 + 10 * 20, 94 + 20 * 16)).convert("HSV").filter(ImageFilter.SMOOTH))
+        #self.extract_colours(img.crop((239, 93, 240 + 10 * 20, 94 + 20 * 16)).convert("HSV").filter(ImageFilter.SMOOTH))
+        self.extract_colours(img.crop((239, 93, 240 + 10 * 20, 94 + 20 * 16)).filter(ImageFilter.SMOOTH))
 
         # next block
-        self.extract_next_block(img.crop((482, 237, 482 + 81, 237 + 33)).convert("HSV").filter(ImageFilter.SMOOTH))
+        self.extract_next_block(img.crop((482, 237, 482 + 81, 237 + 33)).filter(ImageFilter.SMOOTH))
 
         # number of lines
-        self.extract_lines(img.crop((380, 45, 380 + 61, 45 + 16)).convert("HSV").filter(ImageFilter.SMOOTH))
+        self.extract_lines(img.crop((380, 45, 380 + 61, 45 + 16)).filter(ImageFilter.SMOOTH))
 
         # score
-        self.extract_score(img.crop((481, 125, 481 + 122, 125 + 16)).convert("HSV").filter(ImageFilter.SMOOTH))
+        self.extract_score(img.crop((481, 125, 481 + 122, 125 + 16)).filter(ImageFilter.SMOOTH))
 
         # number of level
-        self.extract_level(img.crop((522, 333, 522 + 40, 333 + 16)).convert("HSV").filter(ImageFilter.SMOOTH))
+        self.extract_level(img.crop((522, 333, 522 + 40, 333 + 16)).filter(ImageFilter.SMOOTH))
 
         return self.img_leds
 
@@ -313,7 +323,7 @@ class NesTetris:
 import numpy as np
 
 if __name__ == "__main__":
-    im = Image.open("../streaming/nes_cut.png").convert(_FORMAT)
+    im = Image.open("nes_cut.png").convert(_FORMAT)
     gray = im.getpixel((6,6))
     print("debug gray", gray)
     game = NesTetris(_gray=gray)

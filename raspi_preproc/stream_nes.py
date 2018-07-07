@@ -8,13 +8,12 @@ from PIL import ImageFilter
 from nes_tetris import NesTetris
 
 
-""" Computational costs:
-- grab the frame: 0.4 ms
-- convert frame to YCbCr: 7 - 14 ms
-- cut game area: 0.5 ms
-- convert YCbCr to HSV: 7 - 11 ms
-- calculate led pixels from cutted hsv img (including smooth filters):  3.5 - 4.5 ms
-overall costs: 18 - 28 ms
+""" Computational costs on raspi:
+- grab the frame: 13-14 ms
+- convert frame to RGB PIL img: 5 - 6 ms
+- cut game area: 2-3 ms
+- calculate led pixels from cutted rgb img (including smooth filters):  19 - 20 ms
+overall costs: 40-41 ms
 """
 
 class StreamNES:
@@ -42,8 +41,9 @@ class StreamNES:
 
         self.game = NesTetris(_num_leds_h=_num_leds_h, _num_leds_v=_num_leds_v)
 
+        #-p 25
         os.system(
-        'v4l2-ctl -d {device} -s {m} --set-fmt-video width={w},height={h},pixelformat={pf} --{fb}'.format(
+        'v4l2-ctl -d {device} -p 25 -s {m} --set-fmt-video width={w},height={h},pixelformat={pf} --{fb}'.format(
             device=self.device, m=self.mode, w=self.w, h=self.h, pf=self.format, fb=fb))
         #self.frame = Frame(self.device)
         self.frame = Camera(self.device)
@@ -187,7 +187,7 @@ if __name__ == "__main__":
         time_d = timefin - timestart_c
         time_total = time_a + time_b + time_c + time_d
         print("time_grab: {time_a}, time_conv: {time_b}, "
-              "time_cut_hsv: {time_c}, time_smooth_trans: {time_d}, "
+              "time_cut: {time_c}, time_smooth_trans: {time_d}, "
               "time_total: {time_total}, wait_t: {waittime} in ms".format(
                   time_a=time_a.microseconds / 1000,
                   time_b=time_b.microseconds / 1000,
