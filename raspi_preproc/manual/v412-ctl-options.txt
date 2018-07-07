@@ -1,0 +1,587 @@
+
+Standards/Timings options:
+  --list-standards   display supported video standards [VIDIOC_ENUMSTD]
+  -S, --get-standard
+                     query the video standard [VIDIOC_G_STD]
+  -s, --set-standard=<num>
+                     set the video standard to <num> [VIDIOC_S_STD]
+                     <num> a numerical v4l2_std value, or one of:
+                     pal or pal-X (X = B/G/H/N/Nc/I/D/K/M/60) (V4L2_STD_PAL)
+                     ntsc or ntsc-X (X = M/J/K) (V4L2_STD_NTSC)
+                     secam or secam-X (X = B/G/H/D/K/L/Lc) (V4L2_STD_SECAM)
+  --get-detected-standard
+                     display detected input video standard [VIDIOC_QUERYSTD]
+  --list-dv-timings  list supp. standard dv timings [VIDIOC_ENUM_DV_TIMINGS]
+  --set-dv-bt-timings
+                     query: use the output of VIDIOC_QUERY_DV_TIMINGS
+                     index=<index>: use the index as provided by --list-dv-timings
+                     or specify timings using cvt/gtf options as follows:
+                     cvt/gtf,width=<width>,height=<height>,fps=<frames per sec>
+                     interlaced=<0/1>,reduced-blanking=<0/1/2>,reduced-fps=<0/1>
+                     The value of reduced-blanking, if greater than 0, indicates
+                     that reduced blanking is to be used and the value indicate the
+                     version. For gtf, there is no version 2 for reduced blanking, and
+		     the value 1 or 2 will give same results.
+		     reduced-fps = 1, slows down pixel clock by factor of 1000 / 1001, allowing
+		     to support NTSC frame rates like 29.97 or 59.94.
+		     Reduced fps flag takes effect only with reduced blanking version 2 and,
+		     when refresh rate is an integer multiple of 6, say, fps = 24,30,60 etc.
+                     or update all or part of the current timings fields:
+                     width=<width>,height=<height>,interlaced=<0/1>,
+                     polarities=<polarities mask>,pixelclock=<pixelclock Hz>,
+                     hfp=<horizontal front porch>,hs=<horizontal sync>,
+                     hbp=<horizontal back porch>,vfp=<vertical front porch>,
+                     vs=<vertical sync>,vbp=<vertical back porch>,
+                     il_vfp=<vertical front porch for bottom field>,
+                     il_vs=<vertical sync for bottom field>,
+                     il_vbp=<vertical back porch for bottom field>.
+                     clear: start with zeroed timings instead of the current timings.
+                     set the digital video timings according to the BT 656/1120
+                     standard [VIDIOC_S_DV_TIMINGS]
+  --get-dv-timings   get the digital video timings in use [VIDIOC_G_DV_TIMINGS]
+  --query-dv-timings query the detected dv timings [VIDIOC_QUERY_DV_TIMINGS]
+  --get-dv-timings-cap
+                     get the dv timings capabilities [VIDIOC_DV_TIMINGS_CAP]
+
+General/Common options:
+  --all              display all information available
+  -C, --get-ctrl=<ctrl>[,<ctrl>...]
+                     get the value of the controls [VIDIOC_G_EXT_CTRLS]
+  -c, --set-ctrl=<ctrl>=<val>[,<ctrl>=<val>...]
+                     set the value of the controls [VIDIOC_S_EXT_CTRLS]
+  -D, --info         show driver info [VIDIOC_QUERYCAP]
+  -d, --device=<dev> use device <dev> instead of /dev/video0
+                     if <dev> starts with a digit, then /dev/video<dev> is used
+  -e, --out-device=<dev> use device <dev> for output streams instead of the
+                     default device as set with --device
+                     if <dev> starts with a digit, then /dev/video<dev> is used
+  -h, --help         display this help message
+  --help-all         all options
+  --help-io          input/output options
+  --help-misc        miscellaneous options
+  --help-overlay     overlay format options
+  --help-sdr         SDR format options
+  --help-selection   crop/selection options
+  --help-stds        standards and other video timings options
+  --help-streaming   streaming options
+  --help-tuner       tuner/modulator options
+  --help-vbi         VBI format options
+  --help-vidcap      video capture format options
+  --help-vidout      vidout output format options
+  --help-edid        edid handling options
+  -k, --concise      be more concise if possible.
+  -l, --list-ctrls   display all controls and their values [VIDIOC_QUERYCTRL]
+  -L, --list-ctrls-menus
+		     display all controls and their menus [VIDIOC_QUERYMENU]
+  -r, --subset=<ctrl>[,<offset>,<size>]+
+                     the subset of the N-dimensional array to get/set for control <ctrl>,
+                     for every dimension an (<offset>, <size>) tuple is given.
+  -w, --wrapper      use the libv4l2 wrapper library.
+  --list-devices     list all v4l devices
+  --log-status       log the board status in the kernel log [VIDIOC_LOG_STATUS]
+  --get-priority     query the current access priority [VIDIOC_G_PRIORITY]
+  --set-priority=<prio>
+                     set the new access priority [VIDIOC_S_PRIORITY]
+                     <prio> is 1 (background), 2 (interactive) or 3 (record)
+  --silent           only set the result code, do not print any messages
+  --sleep=<secs>     sleep <secs>, call QUERYCAP and close the file handle
+  --verbose          turn on verbose ioctl status reporting
+
+Tuner/Modulator options:
+  -F, --get-freq     query the frequency [VIDIOC_G_FREQUENCY]
+  -f, --set-freq=<freq>
+                     set the frequency to <freq> MHz [VIDIOC_S_FREQUENCY]
+  -T, --get-tuner    query the tuner settings [VIDIOC_G_TUNER]
+  -t, --set-tuner=<mode>
+                     set the audio mode of the tuner [VIDIOC_S_TUNER]
+                     Possible values: mono, stereo, lang2, lang1, bilingual
+  --tuner-index=<idx> Use idx as tuner idx for tuner/modulator commands
+  --list-freq-bands  display all frequency bands for the tuner/modulator
+                     [VIDIOC_ENUM_FREQ_BANDS]
+  --get-modulator    query the modulator settings [VIDIOC_G_MODULATOR]
+  --set-modulator=<txsubchans>
+                     set the sub-carrier modulation [VIDIOC_S_MODULATOR]
+                     <txsubchans> is one of:
+                     mono:	 Modulate as mono
+                     mono-rds:	 Modulate as mono with RDS (radio only)
+                     stereo:	 Modulate as stereo
+                     stereo-rds: Modulate as stereo with RDS (radio only)
+                     bilingual:	 Modulate as bilingual
+                     mono-sap:	 Modulate as mono with Second Audio Program
+                     stereo-sap: Modulate as stereo with Second Audio Program
+  --freq-seek=dir=<0/1>,wrap=<0/1>,spacing=<hz>,low=<freq>,high=<freq>
+                     perform a hardware frequency seek [VIDIOC_S_HW_FREQ_SEEK]
+                     dir is 0 (seek downward) or 1 (seek upward)
+                     wrap is 0 (do not wrap around) or 1 (wrap around)
+                     spacing sets the seek resolution (use 0 for default)
+                     low and high set the low and high seek frequency range in MHz
+
+Input/Output options:
+  -I, --get-input    query the video input [VIDIOC_G_INPUT]
+  -i, --set-input=<num>
+                     set the video input to <num> [VIDIOC_S_INPUT]
+  -N, --list-outputs display video outputs [VIDIOC_ENUMOUTPUT]
+  -n, --list-inputs  display video inputs [VIDIOC_ENUMINPUT]
+  -O, --get-output   query the video output [VIDIOC_G_OUTPUT]
+  -o, --set-output=<num>
+                     set the video output to <num> [VIDIOC_S_OUTPUT]
+  --set-audio-output=<num>
+                     set the audio output to <num> [VIDIOC_S_AUDOUT]
+  --get-audio-input  query the audio input [VIDIOC_G_AUDIO]
+  --set-audio-input=<num>
+                     set the audio input to <num> [VIDIOC_S_AUDIO]
+  --get-audio-output query the audio output [VIDIOC_G_AUDOUT]
+  --set-audio-output=<num>
+                     set the audio output to <num> [VIDIOC_S_AUDOUT]
+  --list-audio-outputs
+                     display audio outputs [VIDIOC_ENUMAUDOUT]
+  --list-audio-inputs
+                     display audio inputs [VIDIOC_ENUMAUDIO]
+
+Standards/Timings options:
+  --list-standards   display supported video standards [VIDIOC_ENUMSTD]
+  -S, --get-standard
+                     query the video standard [VIDIOC_G_STD]
+  -s, --set-standard=<num>
+                     set the video standard to <num> [VIDIOC_S_STD]
+                     <num> a numerical v4l2_std value, or one of:
+                     pal or pal-X (X = B/G/H/N/Nc/I/D/K/M/60) (V4L2_STD_PAL)
+                     ntsc or ntsc-X (X = M/J/K) (V4L2_STD_NTSC)
+                     secam or secam-X (X = B/G/H/D/K/L/Lc) (V4L2_STD_SECAM)
+  --get-detected-standard
+                     display detected input video standard [VIDIOC_QUERYSTD]
+  --list-dv-timings  list supp. standard dv timings [VIDIOC_ENUM_DV_TIMINGS]
+  --set-dv-bt-timings
+                     query: use the output of VIDIOC_QUERY_DV_TIMINGS
+                     index=<index>: use the index as provided by --list-dv-timings
+                     or specify timings using cvt/gtf options as follows:
+                     cvt/gtf,width=<width>,height=<height>,fps=<frames per sec>
+                     interlaced=<0/1>,reduced-blanking=<0/1/2>,reduced-fps=<0/1>
+                     The value of reduced-blanking, if greater than 0, indicates
+                     that reduced blanking is to be used and the value indicate the
+                     version. For gtf, there is no version 2 for reduced blanking, and
+		     the value 1 or 2 will give same results.
+		     reduced-fps = 1, slows down pixel clock by factor of 1000 / 1001, allowing
+		     to support NTSC frame rates like 29.97 or 59.94.
+		     Reduced fps flag takes effect only with reduced blanking version 2 and,
+		     when refresh rate is an integer multiple of 6, say, fps = 24,30,60 etc.
+                     or update all or part of the current timings fields:
+                     width=<width>,height=<height>,interlaced=<0/1>,
+                     polarities=<polarities mask>,pixelclock=<pixelclock Hz>,
+                     hfp=<horizontal front porch>,hs=<horizontal sync>,
+                     hbp=<horizontal back porch>,vfp=<vertical front porch>,
+                     vs=<vertical sync>,vbp=<vertical back porch>,
+                     il_vfp=<vertical front porch for bottom field>,
+                     il_vs=<vertical sync for bottom field>,
+                     il_vbp=<vertical back porch for bottom field>.
+                     clear: start with zeroed timings instead of the current timings.
+                     set the digital video timings according to the BT 656/1120
+                     standard [VIDIOC_S_DV_TIMINGS]
+  --get-dv-timings   get the digital video timings in use [VIDIOC_G_DV_TIMINGS]
+  --query-dv-timings query the detected dv timings [VIDIOC_QUERY_DV_TIMINGS]
+  --get-dv-timings-cap
+                     get the dv timings capabilities [VIDIOC_DV_TIMINGS_CAP]
+
+Video Capture Formats options:
+  --list-formats     display supported video formats [VIDIOC_ENUM_FMT]
+  --list-formats-ext display supported video formats including frame sizes
+                     and intervals
+  --list-framesizes=<f>
+                     list supported framesizes for pixelformat <f>
+                     [VIDIOC_ENUM_FRAMESIZES]
+                     pixelformat is the fourcc value as a string
+  --list-frameintervals=width=<w>,height=<h>,pixelformat=<f>
+                     list supported frame intervals for pixelformat <f> and
+                     the given width and height [VIDIOC_ENUM_FRAMEINTERVALS]
+                     pixelformat is the fourcc value as a string
+  --list-fields      list supported fields for the current format
+  -V, --get-fmt-video
+     		     query the video capture format [VIDIOC_G_FMT]
+  -v, --set-fmt-video
+  --try-fmt-video=width=<w>,height=<h>,pixelformat=<pf>,field=<f>,colorspace=<c>,
+                  xfer=<xf>,ycbcr=<y>,quantization=<q>,premul-alpha,bytesperline=<bpl>
+                     set/try the video capture format [VIDIOC_S/TRY_FMT]
+                     pixelformat is either the format index as reported by
+                       --list-formats, or the fourcc value as a string.
+                     The bytesperline option can be used multiple times, once for each plane.
+                     premul-alpha sets V4L2_PIX_FMT_FLAG_PREMUL_ALPHA.
+                     <f> can be one of the following field layouts:
+                       any, none, top, bottom, interlaced, seq_tb, seq_bt,
+                       alternate, interlaced_tb, interlaced_bt
+                     <c> can be one of the following colorspaces:
+                       smpte170m, smpte240m, rec709, 470m, 470bg, jpeg, srgb,
+                       adobergb, bt2020, dcip3
+                     <xf> can be one of the following transfer functions:
+                       default, 709, srgb, adobergb, smpte240m, smpte2084, dcip3, none
+                     <y> can be one of the following Y'CbCr encodings:
+                       default, 601, 709, xv601, xv709, bt2020, bt2020c, smpte240m
+                     <q> can be one of the following quantization methods:
+                       default, full-range, lim-range
+
+Video Output Formats options:
+  --list-formats-out display supported video output formats [VIDIOC_ENUM_FMT]
+  --list-fields-out  list supported fields for the current output format
+  --get-fmt-video-out
+     		     query the video output format [VIDIOC_G_FMT]
+  --set-fmt-video-out
+  --try-fmt-video-out=width=<w>,height=<h>,pixelformat=<pf>,field=<f>,colorspace=<c>,
+                      xfer=<xf>,ycbcr=<y>,quantization=<q>,premul-alpha,bytesperline=<bpl>
+                     set/try the video output format [VIDIOC_S/TRY_FMT]
+                     pixelformat is either the format index as reported by
+                       --list-formats-out, or the fourcc value as a string.
+                     premul-alpha sets V4L2_PIX_FMT_FLAG_PREMUL_ALPHA.
+                     The bytesperline option can be used multiple times, once for each plane.
+                     <f> can be one of the following field layouts:
+                       any, none, top, bottom, interlaced, seq_tb, seq_bt,
+                       alternate, interlaced_tb, interlaced_bt
+                     <c> can be one of the following colorspaces:
+                       smpte170m, smpte240m, rec709, 470m, 470bg, jpeg, srgb,
+                       adobergb, bt2020, dcip3
+                     <xf> can be one of the following transfer functions:
+                       default, 709, srgb, adobergb, smpte240m, smpte2084, dcip3, none
+                     <y> can be one of the following Y'CbCr encodings:
+                       default, 601, 709, xv601, xv709, bt2020, bt2020c, smpte240m
+                     <q> can be one of the following quantization methods:
+                       default, full-range, lim-range
+
+Video Overlay options:
+  --list-formats-overlay
+                     display supported overlay formats [VIDIOC_ENUM_FMT]
+  --find-fb          find the fb device corresponding with the overlay
+  --overlay=<on>     turn overlay on (1) or off (0) (VIDIOC_OVERLAY)
+  --get-fmt-overlay  query the video or video output overlay format [VIDIOC_G_FMT]
+  --set-fmt-overlay
+  --try-fmt-overlay=chromakey=<key>,global_alpha=<alpha>,
+                           top=<t>,left=<l>,width=<w>,height=<h>,field=<f>
+     		     set/try the video or video output overlay format [VIDIOC_TRY/S_FMT]
+                     <f> can be one of:
+                     any, none, top, bottom, interlaced, seq_tb, seq_bt,
+                     alternate, interlaced_tb, interlaced_bt
+                     If the width or height changed then the old clip list and bitmap will
+                     be invalidated.
+  --clear-clips      clear any old clips, to be used in combination with --try/set-fmt-overlay
+  --clear-bitmap     clear any old bitmap, to be used in combination with --try/set-fmt-overlay
+  --add-clip=top=<t>,left=<l>,width=<w>,height=<h>
+                     Add an entry to the clip list. May be used multiple times.
+                     This clip list will be passed to --try/set-fmt-overlay
+  --add-bitmap=top=<t>,left=<l>,width=<w>,height=<h>
+                     Set the bits in the given rectangle in the bitmap to 1. May be
+                     used multiple times.
+                     The bitmap will be passed to --try/set-fmt-overlay
+  --get-fbuf         query the overlay framebuffer data [VIDIOC_G_FBUF]
+  --set-fbuf=chromakey=<b>,src_chromakey=<b>,global_alpha=<b>,local_alpha=<b>,local_inv_alpha=<b>,fb=<fb>
+		     set the overlay framebuffer [VIDIOC_S_FBUF]
+                     <b> is 0 or 1
+                     <fb> is the framebuffer device (/dev/fbX)
+                     if <fb> starts with a digit, then /dev/fb<fb> is used
+
+VBI Formats options:
+  --get-sliced-vbi-cap
+		     query the sliced VBI capture capabilities
+                     [VIDIOC_G_SLICED_VBI_CAP]
+  --get-sliced-vbi-out-cap
+		     query the sliced VBI output capabilities
+                     [VIDIOC_G_SLICED_VBI_CAP]
+  -B, --get-fmt-sliced-vbi
+		     query the sliced VBI capture format [VIDIOC_G_FMT]
+  --get-fmt-sliced-vbi-out
+		     query the sliced VBI output format [VIDIOC_G_FMT]
+  -b, --set-fmt-sliced-vbi
+  --try-fmt-sliced-vbi
+  --set-fmt-sliced-vbi-out
+  --try-fmt-sliced-vbi-out=<mode>
+                     set/try the sliced VBI capture/output format to <mode>
+                     [VIDIOC_S/TRY_FMT], <mode> is a comma separated list of:
+                     off:      turn off sliced VBI (cannot be combined with
+                               other modes)
+                     teletext: teletext (PAL/SECAM)
+                     cc:       closed caption (NTSC)
+                     wss:      widescreen signal (PAL/SECAM)
+                     vps:      VPS (PAL/SECAM)
+  --get-fmt-vbi      query the VBI capture format [VIDIOC_G_FMT]
+  --get-fmt-vbi-out  query the VBI output format [VIDIOC_G_FMT]
+  --set-fmt-vbi
+  --try-fmt-vbi
+  --set-fmt-vbi-out
+  --try-fmt-vbi-out=samplingrate=<r>,offset=<o>,samplesperline=<spl>,
+                     start0=<s0>,count0=<c0>,start1=<s1>,count1=<c1>
+                     set/try the raw VBI capture/output format [VIDIOC_S/TRY_FMT]
+                     samplingrate: samples per second
+                     offset: horizontal offset in samples
+                     samplesperline: samples per line
+                     start0: start line number of the first field
+                     count0: number of lines in the first field
+                     start1: start line number of the second field
+                     count1: number of lines in the second field
+
+SDR Formats options:
+  --list-formats-sdr display supported SDR capture formats [VIDIOC_ENUM_FMT]
+  --get-fmt-sdr      query the SDR capture format [VIDIOC_G_FMT]
+  --set-fmt-sdr=<f>  set the SDR capture format [VIDIOC_S_FMT]
+                     parameter is either the format index as reported by
+                     --list-formats-sdr-cap, or the fourcc value as a string
+  --try-fmt-sdr=<f>  try the SDR capture format [VIDIOC_TRY_FMT]
+                     parameter is either the format index as reported by
+                     --list-formats-sdr-cap, or the fourcc value as a string
+  --list-formats-sdr-out
+                     display supported SDR output formats [VIDIOC_ENUM_FMT]
+  --get-fmt-sdr-out  query the SDR output format [VIDIOC_G_FMT]
+  --set-fmt-sdr-out=<f>
+                     set the SDR output format [VIDIOC_S_FMT]
+                     parameter is either the format index as reported by
+                     --list-formats-sdr-out, or the fourcc value as a string
+  --try-fmt-sdr-out=<f>
+                     try the SDR output format [VIDIOC_TRY_FMT]
+                     parameter is either the format index as reported by
+                     --list-formats-sdr-out, or the fourcc value as a string
+
+Selection/Cropping options:
+  --get-cropcap      query the crop capabilities [VIDIOC_CROPCAP]
+  --get-crop	     query the video capture crop window [VIDIOC_G_CROP]
+  --set-crop=top=<x>,left=<y>,width=<w>,height=<h>
+                     set the video capture crop window [VIDIOC_S_CROP]
+  --get-cropcap-output
+                     query crop capabilities for video output [VIDIOC_CROPCAP]
+  --get-crop-output  query the video output crop window [VIDIOC_G_CROP]
+  --set-crop-output=top=<x>,left=<y>,width=<w>,height=<h>
+                     set the video output crop window [VIDIOC_S_CROP]
+  --get-cropcap-overlay
+                     query crop capabilities for video overlay [VIDIOC_CROPCAP]
+  --get-crop-overlay query the video overlay crop window [VIDIOC_G_CROP]
+  --set-crop-overlay=top=<x>,left=<y>,width=<w>,height=<h>
+                     set the video overlay crop window [VIDIOC_S_CROP]
+  --get-cropcap-output-overlay
+                     query the crop capabilities for video output overlays
+                     [VIDIOC_CROPCAP]
+  --get-crop-output-overlay
+                     query the video output overlay crop window [VIDIOC_G_CROP]
+  --set-crop-output-overlay=top=<x>,left=<y>,width=<w>,height=<h>
+                     set the video output overlay crop window [VIDIOC_S_CROP]
+  --get-selection=target=<target>
+                     query the video capture selection rectangle [VIDIOC_G_SELECTION]
+                     See --set-selection command for the valid <target> values.
+  --set-selection=target=<target>,flags=<flags>,top=<x>,left=<y>,width=<w>,height=<h>
+                     set the video capture selection rectangle [VIDIOC_S_SELECTION]
+                     target=crop|crop_bounds|crop_default|compose|compose_bounds|
+                            compose_default|compose_padded|native_size
+                     flags=le|ge
+  --get-selection-output=target=<target>
+                     query the video output selection rectangle [VIDIOC_G_SELECTION]
+                     See --set-selection command for the valid <target> values.
+  --set-selection-output=target=<target>,flags=<flags>,top=<x>,left=<y>,width=<w>,height=<h>
+                     set the video output selection rectangle [VIDIOC_S_SELECTION]
+                     See --set-selection command for the arguments.
+
+Miscellaneous options:
+  --wait-for-event=<event>
+                     wait for an event [VIDIOC_DQEVENT]
+                     <event> is the event number or one of:
+                     eos, vsync, ctrl=<id>, frame_sync, source_change=<pad>,
+                     motion_det
+                     where <id> is the name of the control
+                     and where <pad> is the index of the pad or input
+  --poll-for-event=<event>
+                     poll for an event [VIDIOC_DQEVENT]
+                     see --wait-for-event for possible events
+  -P, --get-parm     display video parameters [VIDIOC_G_PARM]
+  -p, --set-parm=<fps>
+                     set video framerate in <fps> [VIDIOC_S_PARM]
+  --get-output-parm  display output video parameters [VIDIOC_G_PARM]
+  --set-output-parm=<fps>
+                     set output video framerate in <fps> [VIDIOC_S_PARM]
+  --get-jpeg-comp    query the JPEG compression [VIDIOC_G_JPEGCOMP]
+  --set-jpeg-comp=quality=<q>,markers=<markers>,comment=<c>,app<n>=<a>
+                     set the JPEG compression [VIDIOC_S_JPEGCOMP]
+                     <n> is the app segment: 0-9/a-f, <a> is the actual string.
+                     <markers> is a colon separated list of:
+                     dht:      Define Huffman Tables
+                     dqt:      Define Quantization Tables
+                     dri:      Define Restart Interval
+  --encoder-cmd=cmd=<cmd>,flags=<flags>
+                     Send a command to the encoder [VIDIOC_ENCODER_CMD]
+                     cmd=start|stop|pause|resume
+                     flags=stop_at_gop_end
+  --try-encoder-cmd=cmd=<cmd>,flags=<flags>
+                     Try an encoder command [VIDIOC_TRY_ENCODER_CMD]
+                     See --encoder-cmd for the arguments.
+  --decoder-cmd=cmd=<cmd>,flags=<flags>,stop_pts=<pts>,start_speed=<speed>,
+                     start_format=<none|gop>
+                     Send a command to the decoder [VIDIOC_DECODER_CMD]
+                     cmd=start|stop|pause|resume
+                     flags=start_mute_audio|pause_to_black|stop_to_black|
+                           stop_immediately
+  --try-decoder-cmd=cmd=<cmd>,flags=<flags>
+                     Try a decoder command [VIDIOC_TRY_DECODER_CMD]
+                     See --decoder-cmd for the arguments.
+
+Video Streaming options:
+  --stream-count=<count>
+                     stream <count> buffers. The default is to keep streaming
+                     forever. This count does not include the number of initial
+                     skipped buffers as is passed by --stream-skip.
+  --stream-skip=<count>
+                     skip the first <count> buffers. The default is 0.
+  --stream-sleep=<count>
+                     sleep for 1 second every <count> buffers. If <count> is 0,
+                     then sleep forever right after streaming starts. The default
+                     is -1 (never sleep).
+  --stream-to=<file> stream to this file. The default is to discard the
+                     data. If <file> is '-', then the data is written to stdout
+                     and the --silent option is turned on automatically.
+  --stream-to-host=<hostname[:port]> stream to this host. The default port is 8362.
+  --stream-poll      use non-blocking mode and select() to stream.
+  --stream-mmap=<count>
+                     capture video using mmap() [VIDIOC_(D)QBUF]
+                     count: the number of buffers to allocate. The default is 3.
+  --stream-user=<count>
+                     capture video using user pointers [VIDIOC_(D)QBUF]
+                     count: the number of buffers to allocate. The default is 3.
+  --stream-dmabuf    capture video using dmabuf [VIDIOC_(D)QBUF]
+                     Requires a corresponding --stream-out-mmap option.
+  --stream-from=<file> stream from this file. The default is to generate a pattern.
+                     If <file> is '-', then the data is read from stdin.
+  --stream-from-host=<hostname[:port]> stream from this host. The default port is 8362.
+  --stream-loop      loop when the end of the file we are streaming from is reached.
+                     The default is to stop.
+  --stream-out-pattern=<count>
+                     choose output test pattern. The default is 0.
+  --stream-out-square
+                     show a square in the middle of the output test pattern.
+  --stream-out-border
+                     show a border around the pillar/letterboxed video.
+  --stream-out-sav   insert an SAV code in every line.
+  --stream-out-eav   insert an EAV code in every line.
+  --stream-out-pixel-aspect=<aspect
+                     select a pixel aspect ratio. The default is to autodetect.
+                     <aspect> can be one of: square, ntsc, pal
+  --stream-out-video-aspect=<aspect
+                     select a video aspect ratio. The default is to use the frame ratio.
+                     <aspect> can be one of: 4x3, 14x9, 16x9, anamorphic
+  --stream-out-alpha=<alpha-value>
+                     value to use for the alpha component, range 0-255. The default is 0.
+  --stream-out-alpha-red-only
+                     only use the --stream-out-alpha value for the red colors,
+                     for all others use 0.
+  --stream-out-rgb-lim-range
+                     Encode RGB values as limited [16-235] instead of full range.
+  --stream-out-hor-speed=<speed>
+                     choose speed for horizontal movement. The default is 0,
+                     and the range is [-3...3].
+  --stream-out-vert-speed=<speed>
+                     choose speed for vertical movement. The default is 0,
+                     and the range is [-3...3].
+  --stream-out-perc-fill=<percentage>
+                     percentage of the frame to actually fill. The default is 100%.
+  --stream-out-mmap=<count>
+                     output video using mmap() [VIDIOC_(D)QBUF]
+                     count: the number of buffers to allocate. The default is 4.
+  --stream-out-user=<count>
+                     output video using user pointers [VIDIOC_(D)QBUF]
+                     count: the number of buffers to allocate. The default is 4.
+  --stream-out-dmabuf
+                     output video using dmabuf [VIDIOC_(D)QBUF]
+                     Requires a corresponding --stream-mmap option.
+  --list-patterns    list available patterns for use with --stream-pattern.
+  --list-buffers     list all video buffers [VIDIOC_QUERYBUF]
+  --list-buffers-out list all video output buffers [VIDIOC_QUERYBUF]
+  --list-buffers-vbi list all VBI buffers [VIDIOC_QUERYBUF]
+  --list-buffers-vbi-out
+                     list all VBI output buffers [VIDIOC_QUERYBUF]
+  --list-buffers-sliced-vbi
+                     list all sliced VBI buffers [VIDIOC_QUERYBUF]
+  --list-buffers-sliced-vbi-out
+                     list all sliced VBI output buffers [VIDIOC_QUERYBUF]
+  --list-buffers-sdr
+                     list all SDR RX buffers [VIDIOC_QUERYBUF]
+  --list-buffers-sdr-out
+                     list all SDR TX buffers [VIDIOC_QUERYBUF]
+
+EDID options:
+  --set-edid=pad=<pad>[,type=<type>|file=<file>][,format=<fmt>][modifiers]
+                     <pad> is the input or output index for which to set the EDID.
+                     <type> can be 'hdmi', 'hdmi-4k-170mhz', 'hdmi-4k-300mhz', 'hdmi-4k-600mhz',
+                     'dvid' or 'vga'. A predefined EDID suitable for that connector type will be
+                     set. It has a 1920x1080p60 native resolution for the non-4k variants and a
+                     3840x2160 resolution for the 4k variants (4kp30 YCbCr 4:2:0 for 170mhz, 4kp30
+                     for 300 mhz and 4kp60 for 600 mhz).
+                     If <file> is '-', then the data is read from stdin, otherwise it is
+                     read from the given file. The file format must be in hex as in get-edid.
+                     The 'type' or 'file' arguments are mutually exclusive. One of the two
+                     must be specified.
+                     <fmt> is one of:
+                     hex:    hex numbers in ascii text (default)
+                     raw:    raw binary EDID content
+
+                     [modifiers] is a comma-separate list of EDID modifiers:
+
+                     CEA-861 Header modifiers:
+                     underscan: toggle the underscan bit.
+                     audio: toggle the audio bit.
+                     ycbcr444: toggle the YCbCr 4:4:4 bit.
+                     ycbcr422: toggle the YCbCr 4:2:2 bit.
+
+                     Speaker Allocation Data Block modifiers:
+                     fl-fr: Front Left and Front Right.
+                     lfe: Low Frequence Effects.
+                     fc: Front Center.
+                     rl-rr: Rear Left and Rear Right.
+                     rc: Rear Center.
+                     flc-frc: Front Left Center and Front Right Center.
+                     rlc-rrc: Rear Left Center and Rear Right Center.
+                     flw-frw: Front Left Wide and Front Right Wide.
+                     flh-frh: Front Left High and Front Right High.
+                     tc: Top Center.
+                     fch: Front Center High.
+
+                     HDMI Vendor-Specific Data Block modifiers:
+                     pa=<pa>: change the physical address.
+                     y444: toggle the YCbCr 4:4:4 Deep Color bit.
+                     30-bit: toggle the 30 bits/pixel bit.
+                     36-bit: toggle the 36 bits/pixel bit.
+                     48-bit: toggle the 48 bits/pixel bit.
+                     graphics: toggle the Graphics Content Type bit.
+                     photo: toggle the Photo Content Type bit.
+                     cinema: toggle the Cinema Content Type bit.
+                     game: toggle the Game Content Type bit.
+
+                     HDMI Forum Vendor-Specific Data Block modifiers:
+                     scdc: toggle the SCDC Present bit.
+
+                     CEA-861 Video Capability Descriptor modifiers:
+                     qy: toggle the QY YCC Quantization Range bit.
+                     qs: toggle the QS RGB Quantization Range bit.
+                     s-pt=<0-3>: set the PT Preferred Format Over/underscan bits.
+                     s-it=<0-3>: set the IT Over/underscan bits.
+                     s-ce=<0-3>: set the CE Over/underscan bits.
+
+                     CEA-861 Colorimetry Data Block modifiers:
+                     xvycc-601: toggle the xvYCC 601 bit.
+                     xvycc-709: toggle the xvYCC 709 bit.
+                     sycc: toggle the sYCC 601 bit.
+                     adobe-ycc: toggle the Adobe YCC 601 bit.
+                     adobe-rgb: toggle the Adobe RGB bit.
+                     bt2020-rgb: toggle the BT2020 RGB bit.
+                     bt2020-ycc: toggle the BT2020 YCC bit.
+                     bt2020-cycc: toggle the BT2020 cYCC bit.
+
+                     CEA-861 HDR Static Metadata Data Block modifiers:
+                     sdr: toggle the Traditional gamma SDR bit.
+                     hdr: toggle the Traditional gamma HDR bit.
+                     smpte2084: toggle the SMPTE ST 2084 bit.
+  --clear-edid=<pad>
+                     <pad> is the input or output index for which to clear the EDID.
+  --info-edid=<pad>  print the current EDID's modifiers
+                     <pad> is the input or output index for which to get the EDID.
+  --get-edid=pad=<pad>,startblock=<startblock>,blocks=<blocks>,format=<fmt>,file=<file>
+                     <pad> is the input or output index for which to get the EDID.
+                     <startblock> is the first block number you want to read. Default 0.
+                     <blocks> is the number of blocks you want to read. Default is
+                     all blocks.
+                     <fmt> is one of:
+                     hex:    hex numbers in ascii text (default)
+                     raw:    can be piped directly into the edid-decode tool
+                     carray: c-program struct
+                     If <file> is '-' or not the 'file' argument is not supplied, then the data
+                     is written to stdout.
+  --fix-edid-checksums
+                     If specified then any checksum errors will be fixed silently.
