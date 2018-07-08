@@ -26,7 +26,7 @@ from stream_nes import StreamNES
 from image_loader import ImageLoader
 from audio_beatdetection import AudioBeatdetection
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 exptime = datetime.datetime.now()
 log_out_file = "logs/log_" + exptime.strftime("%y%m%d%H%M") + ".txt"

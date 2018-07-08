@@ -3,6 +3,7 @@ from os import listdir
 from os.path import isfile, join
 import random
 from PIL import Image
+from PIL import ImageEnhance
 
 _FORMAT = "RGB"
 
@@ -22,8 +23,17 @@ class ImageLoader:
 
         self.load_image(self.default_image_name)
 
+
+    def enhance_image(self, img):
+        factor = 1.5
+        converter = ImageEnhance.Color(img)
+        return converter.enhance(factor)
+
+
     def get_image_list(self):
         self.image_list = [f for f in listdir(self.ipath) if isfile(join(self.ipath, f))]
+
+        self.image_list.sort()
 
         return
 
@@ -31,6 +41,8 @@ class ImageLoader:
         if any(name in n for n in self.image_list):
             self.img_leds = Image.open(self.ipath+"/"+name).\
                 resize((self.num_leds_h, self.num_leds_v)).convert("RGB")
+
+            self.img_leds = self.enhance_image(self.img_leds)
 
         self.leds = np.array(self.img_leds)
         return self.leds
