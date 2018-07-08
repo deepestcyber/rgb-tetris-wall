@@ -9,11 +9,11 @@ from nes_tetris import NesTetris
 
 
 """ Computational costs on raspi:
-- grab the frame: 13-14 ms
+- grab the frame: 13-17 ms
 - convert frame to RGB PIL img: 5 - 6 ms
 - cut game area: 2-3 ms
-- calculate led pixels from cutted rgb img (including smooth filters):  19 - 20 ms
-overall costs: 40-41 ms
+- calculate led pixels from cutted rgb img (including smooth filters):  19 - 27 ms
+overall costs: 40-52 ms
 """
 
 class StreamNES:
@@ -186,9 +186,9 @@ if __name__ == "__main__":
         time_c = timestart_c - timestart_b
         time_d = timefin - timestart_c
         time_total = time_a + time_b + time_c + time_d
-        print("time_grab: {time_a}, time_conv: {time_b}, "
-              "time_cut: {time_c}, time_smooth_trans: {time_d}, "
-              "time_total: {time_total}, wait_t: {waittime} in ms".format(
+        print("grab_t: {time_a}, conv_t: {time_b}, "
+              "cut_t: {time_c}, smooth_trans_t: {time_d}, "
+              "total_t: {time_total}, wait_t: {waittime} in ms".format(
                   time_a=time_a.microseconds / 1000,
                   time_b=time_b.microseconds / 1000,
                   time_c=time_c.microseconds / 1000,
