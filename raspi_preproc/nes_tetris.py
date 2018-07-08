@@ -1,5 +1,6 @@
 from PIL import Image
 from PIL import ImageFilter
+from PIL import ImageEnhance
 
 _FORMAT = "RGB" #HSV
 
@@ -157,6 +158,12 @@ class NesTetris:
         return True
 
 
+    def enhance_image(self, img):
+        factor = 2.0
+        converter = ImageEnhance.Color(img)
+        return converter.enhance(factor)
+
+
     def extract_game_area(self, im, area=None):
         if area is None:
             area = (41, 42, 41 + 642, 42 + 478)
@@ -166,11 +173,13 @@ class NesTetris:
     def extract_colours(self, img):
         #img.convert("RGB").save("debug.png", "PNG")
 
+        img_enh = self.enhance_image(img)
+
         for y in range(20):
             for x in range(10):
                 at = (1 + x * 20 + 10, 1 + y * 16 + 9)
                 if not self.is_pix_black(img.getpixel(at)):
-                    pix = img.getpixel(at)
+                    pix = img_enh.getpixel(at)
                 else:
                     pix = self.black
                 self.img_leds.putpixel((1 + x, 3 + y), pix)
@@ -181,29 +190,31 @@ class NesTetris:
     def extract_next_block(self, img):
         #img.convert("RGB").save("debug.png", "PNG")
 
+        img_enh = self.enhance_image(img)
+
         #read
-        if not self.is_pix_black(img.getpixel((5, 18))):
+        if not self.is_pix_black(img_enh.getpixel((5, 18))):
             next_block = 6
-            next_block_col = img.getpixel((5, 18))
-        elif not self.is_pix_black(img.getpixel((15, 9))):
-            if not self.is_pix_black(img.getpixel((35, 26))):
-                if not self.is_pix_black(img.getpixel((55, 9))):
+            next_block_col = img_enh.getpixel((5, 18))
+        elif not self.is_pix_black(img_enh.getpixel((15, 9))):
+            if not self.is_pix_black(img_enh.getpixel((35, 26))):
+                if not self.is_pix_black(img_enh.getpixel((55, 9))):
                     next_block = 0
                 else:
                     next_block = 2
             else:
-                if not self.is_pix_black(img.getpixel((15, 26))):
+                if not self.is_pix_black(img_enh.getpixel((15, 26))):
                     next_block = 5
                 else:
                     next_block = 1
-            next_block_col = img.getpixel((15, 9))
+            next_block_col = img_enh.getpixel((15, 9))
         else:
-            if not self.is_pix_black(img.getpixel((60, 9))):
+            if not self.is_pix_black(img_enh.getpixel((60, 9))):
                 next_block = 4
-                next_block_col = img.getpixel((60, 9))
+                next_block_col = img_enh.getpixel((60, 9))
             else:
                 next_block = 3
-                next_block_col = img.getpixel((50, 9))
+                next_block_col = img_enh.getpixel((50, 9))
 
         #write
         for x in range(0, 4):
