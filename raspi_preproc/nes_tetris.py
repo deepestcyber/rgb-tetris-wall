@@ -3,6 +3,7 @@ from PIL import ImageFilter
 from PIL import ImageEnhance
 
 _FORMAT = "RGB" #HSV
+_COLOR_ENHANCE_FACTOR = 3.0
 
 
 class NesTetris:
@@ -61,6 +62,11 @@ class NesTetris:
         return
 
 
+    def enhance_image(self, img):
+        converter = ImageEnhance.Color(img)
+        return converter.enhance(_COLOR_ENHANCE_FACTOR)
+
+
     def is_pix_white(self, pix):
         if (pix[0] >= 128) and (pix[1] >= 128) and (pix[2] >= 128): #RGB
         #if (pix[2]) >= 128: #HSV
@@ -114,11 +120,16 @@ class NesTetris:
 
 
     def test_pixel(self, img, x, y, is_white=True):
-        pix = img.crop((x, y, x+1, y+1)).getpixel((0, 0))
+        pix = img.getpixel((x, y))
         if is_white:
             return self.is_pix_white(pix)
         else:
             return self.is_pix_black(pix)
+
+
+    # def get_enhanced_pixel(self, img, x, y):
+    #     img_pix = self.enhance_image(img.crop((x, y, x+1, y+1)))
+    #     return img_pix.getpixel((0, 0))
 
 
     def test_tetris_runnig(self, img):
@@ -158,12 +169,6 @@ class NesTetris:
         return True
 
 
-    def enhance_image(self, img):
-        factor = 2.0
-        converter = ImageEnhance.Color(img)
-        return converter.enhance(factor)
-
-
     def extract_game_area(self, im, area=None):
         if area is None:
             area = (41, 42, 41 + 642, 42 + 478)
@@ -172,14 +177,13 @@ class NesTetris:
 
     def extract_colours(self, img):
         #img.convert("RGB").save("debug.png", "PNG")
-
-        img_enh = self.enhance_image(img)
+        #img = self.enhance_image(img)
 
         for y in range(20):
             for x in range(10):
                 at = (1 + x * 20 + 10, 1 + y * 16 + 9)
                 if not self.is_pix_black(img.getpixel(at)):
-                    pix = img_enh.getpixel(at)
+                    pix = img.getpixel(at)
                 else:
                     pix = self.black
                 self.img_leds.putpixel((1 + x, 3 + y), pix)
@@ -189,32 +193,31 @@ class NesTetris:
 
     def extract_next_block(self, img):
         #img.convert("RGB").save("debug.png", "PNG")
-
-        img_enh = self.enhance_image(img)
+        #img = self.enhance_image(img)
 
         #read
-        if not self.is_pix_black(img_enh.getpixel((5, 18))):
+        if not self.is_pix_black(img.getpixel((5, 18))):
             next_block = 6
-            next_block_col = img_enh.getpixel((5, 18))
-        elif not self.is_pix_black(img_enh.getpixel((15, 9))):
-            if not self.is_pix_black(img_enh.getpixel((35, 26))):
-                if not self.is_pix_black(img_enh.getpixel((55, 9))):
+            next_block_col = img.getpixel((5, 18))
+        elif not self.is_pix_black(img.getpixel((15, 9))):
+            if not self.is_pix_black(img.getpixel((35, 26))):
+                if not self.is_pix_black(img.getpixel((55, 9))):
                     next_block = 0
                 else:
                     next_block = 2
             else:
-                if not self.is_pix_black(img_enh.getpixel((15, 26))):
+                if not self.is_pix_black(img.getpixel((15, 26))):
                     next_block = 5
                 else:
                     next_block = 1
-            next_block_col = img_enh.getpixel((15, 9))
+            next_block_col = img.getpixel((15, 9))
         else:
-            if not self.is_pix_black(img_enh.getpixel((60, 9))):
+            if not self.is_pix_black(img.getpixel((60, 9))):
                 next_block = 4
-                next_block_col = img_enh.getpixel((60, 9))
+                next_block_col = img.getpixel((60, 9))
             else:
                 next_block = 3
-                next_block_col = img_enh.getpixel((50, 9))
+                next_block_col = img.getpixel((50, 9))
 
         #write
         for x in range(0, 4):
@@ -315,31 +318,43 @@ class NesTetris:
         # play area
         #self.extract_colours(img.crop((239, 93, 240 + 10 * 20, 94 + 20 * 16)).convert("HSV").filter(ImageFilter.SMOOTH))
         self.extract_colours(img.crop((239, 93, 240 + 10 * 20, 94 + 20 * 16)).filter(ImageFilter.SMOOTH))
+        #self.extract_colours(img.crop((239, 93, 240 + 10 * 20, 94 + 20 * 16)))
 
         # next block
         self.extract_next_block(img.crop((482, 237, 482 + 81, 237 + 33)).filter(ImageFilter.SMOOTH))
+        #self.extract_next_block(img.crop((482, 237, 482 + 81, 237 + 33)))
 
         # number of lines
         self.extract_lines(img.crop((380, 45, 380 + 61, 45 + 16)).filter(ImageFilter.SMOOTH))
+        #self.extract_lines(img.crop((380, 45, 380 + 61, 45 + 16)))
 
         # score
         self.extract_score(img.crop((481, 125, 481 + 122, 125 + 16)).filter(ImageFilter.SMOOTH))
+        #self.extract_score(img.crop((481, 125, 481 + 122, 125 + 16)))
 
         # number of level
         self.extract_level(img.crop((522, 333, 522 + 40, 333 + 16)).filter(ImageFilter.SMOOTH))
+        #self.extract_level(img.crop((522, 333, 522 + 40, 333 + 16)))
 
-        return self.img_leds
+        #return self.img_leds
+        return self.enhance_image(self.img_leds)
+
 
 #for debug
 import numpy as np
+import time
+import datetime
 
 if __name__ == "__main__":
     im = Image.open("nes_cut.png").convert(_FORMAT)
     gray = im.getpixel((6,6))
     print("debug gray", gray)
     game = NesTetris(_gray=gray)
-    leds = game.transform_frame(im).convert("RGB")
-    print("leds", np.array(leds, dtype=np.uint8).shape)
+    for n in range(5):
+        timestart = datetime.datetime.now()
+        leds = game.transform_frame(im).convert("RGB")
+        timefin = datetime.datetime.now()
+        print("leds", np.array(leds, dtype=np.uint8).shape, "transform_t: {ptime} in ms".format(ptime=(timefin-timestart).microseconds / 1000))
     leds.save("leds.png", "PNG")
     im.convert("RGB").save("debug1.png", "PNG")
 
