@@ -40,12 +40,12 @@
 #define BUTTON_BRS_INC A13 // Increment brightness
 #define BUTTON_SPD_DEC A14 // Decrement pattern speed
 #define BUTTON_SPD_INC A15 // IncremNUM_STATUS_LEDSent pattern speed
-#define MODEL_PIXELS WS2812B // WS2811, WS2812b // Fastled
+#define MODEL_PIXELS WS2811 // WS2811, WS2812b // Fastled
 #define MODEL_STATUS NEO_GRB + NEO_KHZ800 // NEO_GRB + NEO_KHZ800 // NeoPixel
 #define NUM_LEDS_H 16 // 16
 #define NUM_LEDS_V 24 // 24
 #define NUM_BUTTONS 8 // 8
-#define NUM_STATUS_LEDS 7 // 4
+#define NUM_STATUS_LEDS 9 // 4
 #define BUTTON_WAIT 40 // time (ms) to wait for another buttoncheck
 #define WAITTIME_VSTREAM 40 // in ms for NES video stream -> 25 fps
 #define WAITTIME_ASTREAM 40 // in ms for beat detection stream -> 25 fps
@@ -65,8 +65,8 @@ Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, STATUS_LEDS_P
 // modes: 0 = light patterns, 1 = image stream (24bit), 2 = music patterns, 3 = NES video stream
 uint8_t mode = 0;
 uint8_t modeMax = 4;
-uint8_t submode [4] = {1, 0, 0, 0};
-uint8_t submodeMax [4] = {64, 11, 4, 1}; // Used for all mode switches
+uint8_t submode [4] = {2, 0, 0, 0};
+uint8_t submodeMax [4] = {64, 10, 4, 1}; // Used for all mode switches
 
 int photoRSTState = 0;      // photo resistor for regulating brightness
 float photoLeakeRate = 0.9; // for smoothing the photo resistor [0,1]
@@ -330,14 +330,14 @@ void updateStatus() {
 //  status_leds[6] = CHSV(200/5*pspeed%200, 255, statusBrightness);
 
   //NeoPixel:
-  if (mode == 3) status_leds.setPixelColor(0, getNeoPixelWheel(42 & 255));
-  else if (mode == 2) status_leds.setPixelColor(0, getNeoPixelWheel(85 & 255));
-  else if (mode == 1) status_leds.setPixelColor(0, getNeoPixelWheel(171 & 255));
-  else status_leds.setPixelColor(0, getNeoPixelWheel(0 & 255));
+  if (mode == 3) status_leds.setPixelColor(1, getNeoPixelWheel(42 & 255));
+  else if (mode == 2) status_leds.setPixelColor(1, getNeoPixelWheel(85 & 255));
+  else if (mode == 1) status_leds.setPixelColor(1, getNeoPixelWheel(171 & 255));
+  else status_leds.setPixelColor(1, getNeoPixelWheel(0 & 255));
 
-  status_leds.setPixelColor(2, getNeoPixelWheel((256/submodeMax[mode]*(submodeMax[mode]-submode[mode]-1)%256) & 255));
-  status_leds.setPixelColor(4, getNeoPixelWheel((180/5*(5-brightness-1)%180) & 255));
-  status_leds.setPixelColor(6, getNeoPixelWheel((180/5*pspeed%180) & 255));
+  status_leds.setPixelColor(3, getNeoPixelWheel((256/submodeMax[mode]*(submodeMax[mode]-submode[mode]-1)%256) & 255));
+  status_leds.setPixelColor(5, getNeoPixelWheel((180/5*(5-brightness-1)%180) & 255));
+  status_leds.setPixelColor(7, getNeoPixelWheel((180/5*pspeed%180) & 255));
 
   status_leds.setBrightness((int)photoRSTState/1023.*valueBrightness[brightness]*0.66);
   if (mode == 0 || process_it) status_leds.show();
@@ -403,6 +403,50 @@ void showStream() {
   timedDelay(waitingTime);
 }
 
+void rainbow(int state, uint8_t chance=0) {
+  for (int i = 0; i < NUM_LEDS_H; i++) {
+    for (int j = 0; j < NUM_LEDS_V; j++) {
+      leds[i][NUM_LEDS_V - 1 - j] = CHSV((7 + 256 / NUM_LEDS_V * (state + random8(chance) + i + j) - 1) % 256, 255, 255);
+    }
+  }
+}
+
+void rgbCurtain(int state, uint8_t chance=5) {
+  for (int i = 0; i < NUM_LEDS_H; i++) {
+    for (int j = 0; j < NUM_LEDS_V; j++) {
+      leds[i][NUM_LEDS_V - 1 - j] = CHSV((rand() % 12 + 256 / NUM_LEDS_V * (state + (random8(chance) - 1) + j) - 1) % 256, 255, 255);
+    }
+  }
+}
+
+void fire(uint8_t chanceOfNew=192, uint8_t chanceOfFade=20, uint8_t color=10, uint8_t fadeStrength=220) {
+  // percentage to fade to black: 192/256 => 75%
+  for (int i = 0; i < NUM_LEDS_H; i++) {
+    for (int j = NUM_LEDS_V-1; j > 0; j--) {
+      leds[i][j] = leds[i][NUM_LEDS_V - 1 - j].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
+    }
+    leds[i][0] = CHSV(color, 255-chanceOfNew+random8(chanceOfNew-1), 255-chanceOfNew+random8(chanceOfNew-1));
+  }
+}
+
+void rain(uint8_t chanceOfNew=128, uint8_t chanceOfFade=48, uint8_t color=170, uint8_t fadeStrength=192) {
+  // percentage to fade to black: 192/256 => 75%
+  for (int i = 0; i < NUM_LEDS_H; i++) {
+    for (int j = 0; j < (NUM_LEDS_V-1); j++) {
+      leds[i][j] = leds[i][j+1].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
+    }
+    leds[i][NUM_LEDS_V-1] = CHSV(color, 255-chanceOfNew+random8(chanceOfNew-1), 255-chanceOfNew+random8(chanceOfNew-1));
+  }
+}
+
+void addGlitter(uint8_t chanceOfGlitter, uint8_t maxNumberOfGlitter=1) {
+  for (int k=0; k<maxNumberOfGlitter; k++) {
+    if(random8() < chanceOfGlitter) {
+      leds[random8(NUM_LEDS_H)][random8(NUM_LEDS_V)] += CRGB::White;
+    }
+  }
+}
+
 void showPatterns() {
   // mode - dynamic patterns (hardcoded) - via several sub-modes
 
@@ -413,41 +457,48 @@ void showPatterns() {
   else if (submode[0] == 62) {
     // copy this check for creating a new pattern
   }
+//  else if (submode[0] == 11) {
+//    for (int i = 0; i < NUM_LEDS_H; i++) {
+//      for (int j = 0; j < NUM_LEDS_V; j++) {
+//      leds[i][NUM_LEDS_V - 1 - j] = CRGB(((brightness) * 60 + 3) % 256, ((brightness) * 60 + 3) % 256, ((brightness) * 60 + 3) % 256);
+//      }
+//    }
+//    waitingTime = 1000;
+//  }
+//  else if (submode[0] == 10) {
+//    for (int i = 0; i < NUM_LEDS_H; i++) {
+//      for (int j = 0; j < NUM_LEDS_V; j++) {
+//        leds[i][NUM_LEDS_V - 1 - j] = CHSV(rand() % 256, (pspeed * 64) % 256, (brightness * 64 - 1) % 256);
+//      }
+//    }
+//    waitingTime = 1000;
+//  }
+  else if (submode[0] == 11) {
+    fire(160, 30, 96, 210);
+    waitingTime = pspeed * pspeed * 62 + 8;
+  }
+  else if (submode[0] == 10) {
+    fire(192, 20, 10, 220);
+    waitingTime = pspeed * pspeed * 62 + 8;
+  }
+  else if (submode[0] == 9) {
+    rain(128, 48, 160, 192);
+    waitingTime = pspeed * pspeed * 62 + 8;
+  }
+  else if (submode[0] == 8) {
+    rain(128, 48, 170, 162);
+    waitingTime = pspeed * pspeed * 62 + 8;
+  }
   else if (submode[0] == 7) {
     for (int i = 0; i < NUM_LEDS_H; i++) {
       for (int j = 0; j < NUM_LEDS_V; j++) {
-      leds[i][NUM_LEDS_V - 1 - j] = CRGB(((brightness) * 60 + 3) % 256, ((brightness) * 60 + 3) % 256, ((brightness) * 60 + 3) % 256);
-      }
-    }
-    waitingTime = 1000;
-  }
-  else if (submode[0] == 6) {
-    for (int i = 0; i < NUM_LEDS_H; i++) {
-      for (int j = 0; j < NUM_LEDS_V; j++) {
-      leds[i][NUM_LEDS_V - 1 - j] = CHSV(rand() % 256, (pspeed * 64) % 256, (brightness * 64 - 1) % 256);
-      }
-    }
-    waitingTime = 1000;
-  }
-  else if (submode[0] == 5) {
-    for (int i = 0; i < NUM_LEDS_H; i++) {
-      for (int j = 0; j < NUM_LEDS_V; j++) {
-      leds[i][NUM_LEDS_V - 1 - j] = CHSV(((state + (rand() % 12 - 1) + j) - 1) % 256, 255, 255);
+        leds[i][NUM_LEDS_V - 1 - j] = CHSV(((state + (rand() % 12 - 1) + j) - 1) % 256, 255, 255);
       }
     }
     state = (state + rand() % 8) % 256;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
-  else if (submode[0] == 4) {
-    for (int i = 0; i < NUM_LEDS_H; i++) {
-      for (int j = 0; j < NUM_LEDS_V; j++) {
-      leds[i][NUM_LEDS_V - 1 - j] = CHSV((7 + 256 / NUM_LEDS_V * (state + i + j) - 1) % 256, 255, 255);
-      }
-    }
-    state = (state + (-1 + (rand() % 4))) % NUM_LEDS_V;
-    waitingTime = pspeed * pspeed * 62 + 8;
-  }
-  else if (submode[0] == 3) {
+  else if (submode[0] == 6) {
     for (int i = 0; i < NUM_LEDS_H; i++) {
       for (int j = 0; j < NUM_LEDS_V; j++) {
       leds[i][NUM_LEDS_V - 1 - j] = CRGB((7 + 256 / NUM_LEDS_V * (state + i - j) - 1 + 256) % 256, (7 + 256 / NUM_LEDS_V * (state - i - j) - 1 + 256) % 256, (7 + 256 / NUM_LEDS_V * (state + i + j) - 1) % 256);
@@ -456,28 +507,35 @@ void showPatterns() {
     state = (state + 1) % NUM_LEDS_V;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
+  else if (submode[0] == 5) {
+    rainbow(state, 0);
+    state = (state + (-1 + (rand() % 4))) % NUM_LEDS_V;
+    waitingTime = pspeed * pspeed * 62 + 8;
+  }
+  else if (submode[0] == 4) {
+    rainbow(state, 3);
+    state = (state + 1) % NUM_LEDS_V;
+    waitingTime = pspeed * pspeed * 62 + 8;
+  }
+  else if (submode[0] == 3) {
+    rainbow(state, 0);
+    state = (state + 1) % NUM_LEDS_V;
+    waitingTime = pspeed * pspeed * 62 + 8;
+  }
   else if (submode[0] == 2) {
-    for (int i = 0; i < NUM_LEDS_H; i++) {
-      for (int j = 0; j < NUM_LEDS_V; j++) {
-      leds[i][NUM_LEDS_V - 1 - j] = CHSV((7 + 256 / NUM_LEDS_V * (state + i + j) - 1) % 256, 255, 255);
-      }
-    }
+    rgbCurtain(state, 5);
     state = (state + 1) % NUM_LEDS_V;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 1) {
-    for (int i = 0; i < NUM_LEDS_H; i++) {
-      for (int j = 0; j < NUM_LEDS_V; j++) {
-      leds[i][NUM_LEDS_V - 1 - j] = CHSV((rand() % 12 + 256 / NUM_LEDS_V * (state + (rand() % 5 - 1) + j) - 1) % 256, 255, 255);
-      }
-    }
+    rgbCurtain(state, 2);
     state = (state + 1) % NUM_LEDS_V;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else { // submode[0] == 0
     for (int i = 0; i < NUM_LEDS_H; i++) {
       for (int j = 0; j < NUM_LEDS_V; j++) {
-      leds[i][NUM_LEDS_V - 1 - j] = CRGB::Black;
+        leds[i][NUM_LEDS_V - 1 - j] = CRGB::Black;
       }
     }
     state = (state + 1) % NUM_LEDS_V;
@@ -487,19 +545,6 @@ void showPatterns() {
   FastLED.show();
   timedDelay(waitingTime);
 }
-
-void rainbow(){
-
-}
-
-void rain(){
-
-}
-
-void glitter(){
-
-}
-
 
 // ------ Tools ------
 
