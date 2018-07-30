@@ -66,7 +66,7 @@ Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, STATUS_LEDS_P
 uint8_t mode = 0;
 uint8_t modeMax = 4;
 uint8_t submode [4] = {2, 0, 0, 0};
-uint8_t submodeMax [4] = {64, 10, 4, 1}; // Used for all mode switches
+uint8_t submodeMax [4] = {12, 11, 4, 1}; // Used for all mode switches
 
 int photoRSTState = 0;      // photo resistor for regulating brightness
 float photoLeakeRate = 0.9; // for smoothing the photo resistor [0,1]
@@ -423,13 +423,13 @@ void fire(uint8_t chanceOfNew=192, uint8_t chanceOfFade=20, uint8_t color=10, ui
   // percentage to fade to black: 192/256 => 75%
   for (int i = 0; i < NUM_LEDS_H; i++) {
     for (int j = NUM_LEDS_V-1; j > 0; j--) {
-      leds[i][j] = leds[i][NUM_LEDS_V - 1 - j].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
+      leds[i][j] = leds[i][j-1].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
     }
     leds[i][0] = CHSV(color, 255-chanceOfNew+random8(chanceOfNew-1), 255-chanceOfNew+random8(chanceOfNew-1));
   }
 }
 
-void rain(uint8_t chanceOfNew=128, uint8_t chanceOfFade=48, uint8_t color=170, uint8_t fadeStrength=192) {
+void rain(uint8_t chanceOfNew=128, uint8_t chanceOfFade=24, uint8_t color=170, uint8_t fadeStrength=192) {
   // percentage to fade to black: 192/256 => 75%
   for (int i = 0; i < NUM_LEDS_H; i++) {
     for (int j = 0; j < (NUM_LEDS_V-1); j++) {
@@ -474,19 +474,19 @@ void showPatterns() {
 //    waitingTime = 1000;
 //  }
   else if (submode[0] == 11) {
-    fire(160, 30, 96, 210);
+    fire(160, 30, 44, 96);
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 10) {
-    fire(192, 20, 10, 220);
+    fire(192, 20, 10, 160);
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 9) {
-    rain(128, 48, 160, 192);
+    rain(128, 32, 160, 96);
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 8) {
-    rain(128, 48, 170, 162);
+    rain(128, 42, 172, 160);
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 7) {
