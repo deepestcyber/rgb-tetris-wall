@@ -130,22 +130,22 @@ void setup() {
 //  }
 
   // Set up LEDS
-  if (NUM_LEDS_H > 0) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_0, GRB>(leds[0], NUM_LEDS_V);
-  if (NUM_LEDS_H > 1) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_1, GRB>(leds[1], NUM_LEDS_V);
-  if (NUM_LEDS_H > 2) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_2, GRB>(leds[2], NUM_LEDS_V);
-  if (NUM_LEDS_H > 3) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_3, GRB>(leds[3], NUM_LEDS_V);
-  if (NUM_LEDS_H > 4) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_4, GRB>(leds[4], NUM_LEDS_V);
-  if (NUM_LEDS_H > 5) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_5, GRB>(leds[5], NUM_LEDS_V);
-  if (NUM_LEDS_H > 6) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_6, GRB>(leds[6], NUM_LEDS_V);
-  if (NUM_LEDS_H > 7) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_7, GRB>(leds[7], NUM_LEDS_V);
-  if (NUM_LEDS_H > 8) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_8, GRB>(leds[8], NUM_LEDS_V);
-  if (NUM_LEDS_H > 9) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_9, GRB>(leds[9], NUM_LEDS_V);
-  if (NUM_LEDS_H > 10) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_10, GRB>(leds[10], NUM_LEDS_V);
-  if (NUM_LEDS_H > 11) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_11, GRB>(leds[11], NUM_LEDS_V);
-  if (NUM_LEDS_H > 12) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_12, GRB>(leds[12], NUM_LEDS_V);
-  if (NUM_LEDS_H > 13) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_13, GRB>(leds[13], NUM_LEDS_V);
-  if (NUM_LEDS_H > 14) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_14, GRB>(leds[14], NUM_LEDS_V);
-  if (NUM_LEDS_H > 15) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_15, GRB>(leds[15], NUM_LEDS_V);
+  if (NUM_LEDS_H > 0) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_0, BRG>(leds[0], NUM_LEDS_V);
+  if (NUM_LEDS_H > 1) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_1, BRG>(leds[1], NUM_LEDS_V);
+  if (NUM_LEDS_H > 2) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_2, BRG>(leds[2], NUM_LEDS_V);
+  if (NUM_LEDS_H > 3) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_3, BRG>(leds[3], NUM_LEDS_V);
+  if (NUM_LEDS_H > 4) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_4, BRG>(leds[4], NUM_LEDS_V);
+  if (NUM_LEDS_H > 5) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_5, BRG>(leds[5], NUM_LEDS_V);
+  if (NUM_LEDS_H > 6) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_6, BRG>(leds[6], NUM_LEDS_V);
+  if (NUM_LEDS_H > 7) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_7, BRG>(leds[7], NUM_LEDS_V);
+  if (NUM_LEDS_H > 8) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_8, BRG>(leds[8], NUM_LEDS_V);
+  if (NUM_LEDS_H > 9) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_9, BRG>(leds[9], NUM_LEDS_V);
+  if (NUM_LEDS_H > 10) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_10, BRG>(leds[10], NUM_LEDS_V);
+  if (NUM_LEDS_H > 11) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_11, BRG>(leds[11], NUM_LEDS_V);
+  if (NUM_LEDS_H > 12) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_12, BRG>(leds[12], NUM_LEDS_V);
+  if (NUM_LEDS_H > 13) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_13, BRG>(leds[13], NUM_LEDS_V);
+  if (NUM_LEDS_H > 14) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_14, BRG>(leds[14], NUM_LEDS_V);
+  if (NUM_LEDS_H > 15) FastLED.addLeds<MODEL_PIXELS, LEDS_PIN_15, BRG>(leds[15], NUM_LEDS_V);
 
   // Set up Status LEDS
 //  FastLED.addLeds<MODEL_STATUS, STATUS_LEDS_PIN, GRB>(status_leds, NUM_STATUS_LEDS);
