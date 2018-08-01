@@ -66,7 +66,7 @@ Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, STATUS_LEDS_P
 uint8_t mode = 0;
 uint8_t modeMax = 4;
 uint8_t submode [4] = {2, 0, 0, 0};
-uint8_t submodeMax [4] = {12, 20, 4, 1}; // Used for all mode switches
+uint8_t submodeMax [4] = {14, 20, 4, 1}; // Used for all mode switches
 
 int photoRSTState = 0;      // photo resistor for regulating brightness
 float photoLeakeRate = 0.9; // for smoothing the photo resistor [0,1]
@@ -419,7 +419,7 @@ void rgbCurtain(int state, uint8_t chance=5) {
   }
 }
 
-void fire(uint8_t chanceOfNew=192, uint8_t chanceOfFade=20, uint8_t color=10, uint8_t fadeStrength=220) {
+void fire(uint8_t color=10, uint8_t chanceOfNew=64, uint8_t fadeStrength=220, uint8_t chanceOfFade=20) {
   // percentage to fade to black: 192/256 => 75%
   for (int i = 0; i < NUM_LEDS_H; i++) {
     for (int j = NUM_LEDS_V-1; j > 0; j--) {
@@ -429,7 +429,7 @@ void fire(uint8_t chanceOfNew=192, uint8_t chanceOfFade=20, uint8_t color=10, ui
   }
 }
 
-void rain(uint8_t chanceOfNew=128, uint8_t chanceOfFade=24, uint8_t color=170, uint8_t fadeStrength=192) {
+void rain(uint8_t color=170, uint8_t chanceOfNew=128, uint8_t fadeStrength=192, uint8_t chanceOfFade=24) {
   // percentage to fade to black: 192/256 => 75%
   for (int i = 0; i < NUM_LEDS_H; i++) {
     for (int j = 0; j < (NUM_LEDS_V-1); j++) {
@@ -439,7 +439,7 @@ void rain(uint8_t chanceOfNew=128, uint8_t chanceOfFade=24, uint8_t color=170, u
   }
 }
 
-void addGlitter(uint8_t chanceOfGlitter, uint8_t maxNumberOfGlitter=1) {
+void addGlitter(uint8_t chanceOfGlitter=128, uint8_t maxNumberOfGlitter=1) {
   for (int k=0; k<maxNumberOfGlitter; k++) {
     if(random8() < chanceOfGlitter) {
       leds[random8(NUM_LEDS_H)][random8(NUM_LEDS_V)] += CRGB::White;
@@ -473,23 +473,23 @@ void showPatterns() {
 //    }
 //    waitingTime = 1000;
 //  }
+  else if (submode[0] == 13) {
+    fire(30, 96, 192, 24);
+    waitingTime = pspeed * pspeed * 62 + 8;
+  }
+  else if (submode[0] == 12) {
+    fire(8, 64, 210, 10);
+    waitingTime = pspeed * pspeed * 62 + 8;
+  }
   else if (submode[0] == 11) {
-    fire(160, 30, 44, 96);
+    rain(160, 160, 220, 32);
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 10) {
-    fire(192, 20, 10, 160);
+    rain(172, 138, 204, 42);
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 9) {
-    rain(128, 32, 160, 96);
-    waitingTime = pspeed * pspeed * 62 + 8;
-  }
-  else if (submode[0] == 8) {
-    rain(128, 42, 172, 160);
-    waitingTime = pspeed * pspeed * 62 + 8;
-  }
-  else if (submode[0] == 7) {
     for (int i = 0; i < NUM_LEDS_H; i++) {
       for (int j = 0; j < NUM_LEDS_V; j++) {
         leds[i][NUM_LEDS_V - 1 - j] = CHSV(((state + (rand() % 12 - 1) + j) - 1) % 256, 255, 255);
@@ -498,7 +498,7 @@ void showPatterns() {
     state = (state + rand() % 8) % 256;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
-  else if (submode[0] == 6) {
+  else if (submode[0] == 8) {
     for (int i = 0; i < NUM_LEDS_H; i++) {
       for (int j = 0; j < NUM_LEDS_V; j++) {
       leds[i][NUM_LEDS_V - 1 - j] = CRGB((7 + 256 / NUM_LEDS_V * (state + i - j) - 1 + 256) % 256, (7 + 256 / NUM_LEDS_V * (state - i - j) - 1 + 256) % 256, (7 + 256 / NUM_LEDS_V * (state + i + j) - 1) % 256);
@@ -507,18 +507,30 @@ void showPatterns() {
     state = (state + 1) % NUM_LEDS_V;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
-  else if (submode[0] == 5) {
+  else if (submode[0] == 7) {
     rainbow(state, 0);
     state = (state + (-1 + (rand() % 4))) % NUM_LEDS_V;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
-  else if (submode[0] == 4) {
+  else if (submode[0] == 6) {
     rainbow(state, 3);
     state = (state + 1) % NUM_LEDS_V;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
-  else if (submode[0] == 3) {
+  else if (submode[0] == 5) {
     rainbow(state, 0);
+    addGlitter(128, 10);
+    state = (state + 1) % NUM_LEDS_V;
+    waitingTime = pspeed * pspeed * 62 + 8;
+  }
+  else if (submode[0] == 4) {
+    rainbow(state, 0);
+    state = (state + 1) % NUM_LEDS_V;
+    waitingTime = pspeed * pspeed * 62 + 8;
+  }
+  else if (submode[0] == 3) {
+    rgbCurtain(state, 5);
+    addGlitter(96, 12);
     state = (state + 1) % NUM_LEDS_V;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
