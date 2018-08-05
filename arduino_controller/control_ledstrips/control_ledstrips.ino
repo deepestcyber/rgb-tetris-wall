@@ -49,7 +49,7 @@
 #define BUTTON_WAIT 40 // time (ms) to wait for another buttoncheck
 #define WAITTIME_VSTREAM 40 // in ms for NES video stream -> 25 fps
 #define WAITTIME_ASTREAM 40 // in ms for beat detection stream -> 25 fps
-#define WAITTIME_ISTREAM 200 // in ms for Image stream -> 5 fps
+#define WAITTIME_ISTREAM 100 // in ms for Image stream -> 10 fps
 #define TIMEOUT_VSTREAM 2000 // in ms for NES video stream
 #define TIMEOUT_ASTREAM 2000 // in ms for beat detection stream
 #define TIMEOUT_ISTREAM 10000 // in ms for Image stream
@@ -197,7 +197,7 @@ void loop() {
 
   // mode - image stream: one frame with 24 bit/px (at max every 80ms)
   else if (mode == 1) {
-    waitingTime = WAITTIME_ISTREAM;
+    waitingTime = WAITTIME_ISTREAM * (1+pspeed) * (1+pspeed) ;
     loopsUntilTimeOut = TIMEOUT_ISTREAM/WAITTIME_ISTREAM;
     showStream();
   }

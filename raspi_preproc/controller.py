@@ -44,8 +44,10 @@ NUM_LEDS_H = 16  # 16
 NUM_LEDS_V = 24  # 24
 FPS = 25
 POLL_GRACE_PERIOD = 0.001  # mainly for debug.
-waittime_until_next_image = 30.0  # change the random image every 5 minutes
-time_last_istream_change = datetime.datetime.now()
+#waittime_until_next_image = 30.0  # change the random image every 5 minutes
+threshold_until_next_image = 10  # change the random image every 10th time.
+#time_last_istream_change = datetime.datetime.now()
+next_image_counter = threshold_until_next_image
 
 b64dict = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
@@ -174,18 +176,27 @@ while True:
                     timeproc = datetime.datetime.now()
 
                 now = datetime.datetime.now()
-                if is_modes_changed or ((now - time_last_istream_change).seconds + (now - time_last_istream_change).microseconds*0.000001 > waittime_until_next_image):
+                #if is_modes_changed or ((now - time_last_istream_change).seconds + (now - time_last_istream_change).microseconds*0.000001 > waittime_until_next_image):
+                if is_modes_changed or (next_image_counter >= (threshold_until_next_image - 1)):
+                    """ 
                     if DEBUG_MODE:
                         print("debug -", "new image:", submode[1],
                               "last_image_t:", "{0:.2f}".format(round((now - time_last_istream_change).seconds * 1000 + (now - time_last_istream_change).microseconds / 1000, 2)),
                               "wait_next_image_t:", "{0:.2f}".format(
                                 round(waittime_until_next_image * 1000, 2)),
                               "(ms)")
+                    """
+                    if DEBUG_MODE:
+                        print("debug -", "new image:", submode[1],
+                              "counter:", next_image_counter)
                     if submode[1] == 0:
                         leds = iloader.load_random_image()
                     else:
                         leds = iloader.load_numbered_image(submode[1])
-                    time_last_istream_change = datetime.datetime.now()
+                    #time_last_istream_change = datetime.datetime.now()
+                    next_image_counter = 0
+                else:
+                    next_image_counter += 1
 
                 if DEBUG_MODE:
                     print("debug -", "leds:", leds.shape)
