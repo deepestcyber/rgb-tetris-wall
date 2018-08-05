@@ -66,7 +66,7 @@ Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, STATUS_LEDS_P
 uint8_t mode = 0;
 uint8_t modeMax = 4;
 uint8_t submode [4] = {2, 0, 0, 0};
-uint8_t submodeMax [4] = {14, 36, 4, 1}; // Used for all mode switches
+uint8_t submodeMax [4] = {14, 37, 4, 1}; // Used for all mode switches
 
 int photoRSTState = 0;      // photo resistor for regulating brightness
 float photoLeakeRate = 0.9; // for smoothing the photo resistor [0,1]
@@ -312,7 +312,9 @@ void checkButtons() {
 void updateStatus() {
 
   // read photo sensor:
-  photoRSTState = photoRSTState*photoLeakeRate + analogRead(PHOTO_RST_PIN)*(1.-photoLeakeRate);
+  //photoRSTState = photoRSTState*photoLeakeRate + analogRead(PHOTO_RST_PIN)*(1.-photoLeakeRate);
+  // disable light sensor for now:
+  photoRSTState = 1023;
 
   // set global brightness:
   FastLED.setBrightness((int)(photoRSTState+211.)/1234.*valueBrightness[brightness]);
