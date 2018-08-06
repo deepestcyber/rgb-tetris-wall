@@ -264,9 +264,9 @@ class NesTetris:
                 + self.get_number(img.crop((102, 0, 102 + 20, 16)))
 
         #write
-        for i in range(max(int(score/12500), 0), 32):
+        for i in range(max(int(score/10000), 0), 32):
             self.img_leds.putpixel((0 + int(i/2), 0 + i%2), self.black)
-        for i in range(min(int(score/12500), 32)):
+        for i in range(min(int(score/10000), 32)):
             self.hsv_pixel.putpixel((0, 0), (max(186-i*6, 0), 255, 128))
             self.img_leds.putpixel((0 + int(i/2), 0 + i%2), self.hsv_pixel.convert(_FORMAT).getpixel((0,0)))
             #"self.img_leds.putpixel((0 + int(i/2), 0 + i%2), (max(186-i*6, 0), 255, 128))
