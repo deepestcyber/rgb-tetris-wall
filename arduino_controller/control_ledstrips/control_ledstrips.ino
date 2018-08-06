@@ -66,7 +66,7 @@ Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, STATUS_LEDS_P
 uint8_t mode = 0;
 uint8_t modeMax = 4;
 uint8_t submode [4] = {2, 0, 0, 0};
-uint8_t submodeMax [4] = {14, 37, 4, 1}; // Used for all mode switches
+uint8_t submodeMax [4] = {15, 37, 4, 1}; // Used for all mode switches
 
 int photoRSTState = 0;      // photo resistor for regulating brightness
 float photoLeakeRate = 0.9; // for smoothing the photo resistor [0,1]
@@ -449,6 +449,44 @@ void addGlitter(uint8_t chanceOfGlitter=128, uint8_t maxNumberOfGlitter=1) {
   }
 }
 
+void plasma(int state, uint8_t chance=0) {
+  for (int i = 0; i < NUM_LEDS_H; i++) {
+    for (int j = 0; j < NUM_LEDS_V; j++) {
+      leds[i][NUM_LEDS_V - 1 - j] = CHSV((7 + 256 / NUM_LEDS_V * (state + random8(chance) + i + j) - 1) % 256, 255, 255);
+    }
+  }
+}
+
+void dancingNote(int state, uint8_t chance=5) {
+  int x = random(4)-random(3);
+  int y = random(5)-random(5);
+  state = (state + random8(chance) - 1 + 256) % 256;
+
+  leds[2 + x][NUM_LEDS_V - 7] = CHSV(state, 255, 255);
+  for (int j = 0; j < 3; j++) {
+    leds[3 + x][NUM_LEDS_V - 6 - j] = CHSV(state, 255, 255);
+  }
+  for (int j = 0; j < 5; j++) {
+    for (int i = 0; i < 4; i++) {
+        leds[4 + i + x][NUM_LEDS_V - 5 - j - y] = CHSV(state, 255, 255);
+    }
+  }
+  for (int j = 0; j < 3; j++) {
+    leds[8 + x][NUM_LEDS_V - 6 - j] = CHSV(state, 255, 255);
+  }
+  for (int j = 0; j < 14; j++) {
+    leds[9+x][NUM_LEDS_V - 7 - j] = CHSV(state, 255, 255);
+  }
+  for (int j = 0; j < 3; j++) {
+    leds[10+x][NUM_LEDS_V - 18 - j] = CHSV(state, 255, 255);
+  }
+  leds[11+x][NUM_LEDS_V - 17] = CHSV(state, 255, 255);
+  leds[12+x][NUM_LEDS_V - 16] = CHSV(state, 255, 255);
+  for (int j = 0; j < 2; j++) {
+    leds[13+x][NUM_LEDS_V - 14 - j] = CHSV(state, 255, 255);
+  }
+}
+
 void showPatterns() {
   // mode - dynamic patterns (hardcoded) - via several sub-modes
 
@@ -475,6 +513,10 @@ void showPatterns() {
 //    }
 //    waitingTime = 1000;
 //  }
+  else if (submode[0] == 14) {
+    dancingNote(state);
+    waitingTime = pspeed * pspeed * 62 + 8;
+  }
   else if (submode[0] == 13) {
     fire(30, 96, 192, 24);
     waitingTime = pspeed * pspeed * 62 + 8;
@@ -511,7 +553,7 @@ void showPatterns() {
   }
   else if (submode[0] == 7) {
     rainbow(state, 0);
-    state = (state + (-1 + (rand() % 4))) % NUM_LEDS_V;
+    state = (state + (-1 + random8(4))) % NUM_LEDS_V;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 6) {
