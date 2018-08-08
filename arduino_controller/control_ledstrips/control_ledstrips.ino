@@ -421,7 +421,7 @@ void rgbCurtain(int state, uint8_t chance=5) {
   }
 }
 
-void fire(uint8_t color=10, uint8_t chanceOfNew=64, uint8_t fadeStrength=220, uint8_t chanceOfFade=20) {
+void fire(uint8_t color=10, uint8_t chanceOfNew=64, uint8_t fadeStrength=200, uint8_t chanceOfFade=20) {
   // percentage to fade to black: 192/256 => 75%
   for (int i = 0; i < NUM_LEDS_H; i++) {
     for (int j = NUM_LEDS_V-1; j > 0; j--) {
@@ -431,7 +431,7 @@ void fire(uint8_t color=10, uint8_t chanceOfNew=64, uint8_t fadeStrength=220, ui
   }
 }
 
-void rain(uint8_t color=170, uint8_t chanceOfNew=128, uint8_t fadeStrength=192, uint8_t chanceOfFade=24) {
+void rain(uint8_t color=170, uint8_t chanceOfNew=128, uint8_t fadeStrength=210, uint8_t chanceOfFade=24) {
   // percentage to fade to black: 192/256 => 75%
   for (int i = 0; i < NUM_LEDS_H; i++) {
     for (int j = 0; j < (NUM_LEDS_V-1); j++) {
@@ -449,12 +449,28 @@ void addGlitter(uint8_t chanceOfGlitter=128, uint8_t maxNumberOfGlitter=1) {
   }
 }
 
-void plasma(int state, uint8_t chance=0) {
-  for (int i = 0; i < NUM_LEDS_H; i++) {
-    for (int j = 0; j < NUM_LEDS_V; j++) {
-      leds[i][NUM_LEDS_V - 1 - j] = CHSV((7 + 256 / NUM_LEDS_V * (state + random8(chance) + i + j) - 1) % 256, 255, 255);
-    }
+void plasma(int state, uint8_t chance=0, uint8_t magnitude=2, uint8_t fadeStrength=200) {
+  y = state%NUM_LEDS_V;
+  x = (state-y)/NUM_LEDS_V;
+	
+  hue = (leds[x][y].hue() + random8(chance)) % 256;
+  
+  new_x = x + (random(1+2*magnitude)-magnitude)%NUM_LEDS_H;
+  new_y = y + (random(1+2*magnitude)-magnitude)%NUM_LEDS_V;
+	
+  leds[new_x][new_y] = CHSV(hue, 255, 255);
+	  
+  for (int i = 1; i <= NUM_LEDS_H/2); i++) {
+    leds[(new_x+i)%NUM_LEDS_H][new_y] = leds[(new_x-1+i)%NUM_LEDS_H][new_y].nscale8(fadeStrength);
+    leds[(new_x-i)%NUM_LEDS_H][new_y] = leds[(new_x+1-i)%NUM_LEDS_H][new_y].nscale8(fadeStrength);
+    for (int j = 1; j <= (NUM_LEDS_V/2); j++) {
+      leds[(new_x+i)%NUM_LEDS_H][(new_y+j)%NUM_LEDS_V] = leds[(new_x-1+i)%NUM_LEDS_H][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength);
+      leds[(new_x-i)%NUM_LEDS_H][(new_y-j)%NUM_LEDS_V] = leds[(new_x+1-i)%NUM_LEDS_H][(new_y+1-j)%NUM_LEDS_V].nscale8(fadeStrength);
+      leds[(new_x+i)%NUM_LEDS_H][(new_y-j)%NUM_LEDS_V] = leds[(new_x-1+i)%NUM_LEDS_H][(new_y+1-j)%NUM_LEDS_V].nscale8(fadeStrength);
+      leds[(new_x-i)%NUM_LEDS_H][(new_y+j)%NUM_LEDS_V] = leds[(new_x+1-i)%NUM_LEDS_H][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength);
+	}
   }
+  state = new_x*NUM_LEDS_V + new_y;
 }
 
 void dancingNote(int state) {
@@ -518,6 +534,18 @@ void showPatterns() {
 //    }
 //    waitingTime = 1000;
 //  }
+  else if (submode[0] == 17) {
+    plasma(state, 12, 3, 220);
+    waitingTime = pspeed * pspeed * 250 + 8;
+  }
+  else if (submode[0] == 16) {
+    plasma(state, 8, 2, 210);
+    waitingTime = pspeed * pspeed * 125 + 8;
+  }
+  else if (submode[0] == 15) {
+    dancingNote(state);
+    waitingTime = pspeed * pspeed * 62 + 8;
+  }
   else if (submode[0] == 14) {
     state = (state + random8(8) - 1 + 256) % 256;
     dancingNote(state);
