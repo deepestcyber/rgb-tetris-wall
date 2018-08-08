@@ -460,7 +460,7 @@ void plasma(int state, uint8_t chance=0, uint8_t magnitude=2, uint8_t fadeStreng
 	
   leds[new_x][new_y] = CHSV(hue, 255, 255);
 	  
-  for (int i = 0; i <= (NUM_LEDS_H/2); i++) {
+  for (int i = 1; i <= (NUM_LEDS_H/2); i++) {
     leds[(new_x+i)%NUM_LEDS_H][new_y] = leds[(new_x-1+i)%NUM_LEDS_H][new_y].nscale8(fadeStrength);
     leds[(new_x-i)%NUM_LEDS_H][new_y] = leds[(new_x+1-i)%NUM_LEDS_H][new_y].nscale8(fadeStrength);
     for (int j = 1; j <= (NUM_LEDS_V/2); j++) {
