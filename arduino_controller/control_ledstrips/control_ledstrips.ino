@@ -388,7 +388,7 @@ void showStream() {
       //just timeout at some point and turn of all leds
       for (int i = 0; i < NUM_LEDS_H; i++) {
         for (int j = 0; j < NUM_LEDS_V; j++) {
-          leds[i][NUM_LEDS_V - 1 - j] = CRGB(0, 0, 0);
+          leds[i][NUM_LEDS_V - 1 - j] = CRGB::Black;
         }
       }
       FastLED.show();
@@ -457,33 +457,38 @@ void plasma(int state, uint8_t chance=0) {
   }
 }
 
-void dancingNote(int state, uint8_t chance=5) {
-  int x = random(4)-random(3);
+void dancingNote(int state) {
+  int x = random(3)+random(2)-random(2)-random(2);
   int y = random(5)-random(5);
-  state = (state + random8(chance) - 1 + 256) % 256;
 
-  leds[2 + x][NUM_LEDS_V - 7] = CHSV(state, 255, 255);
+  for (int i = 0; i < NUM_LEDS_H; i++) {
+    for (int j = 0; j < NUM_LEDS_V; j++) {
+      leds[i][NUM_LEDS_V - 1 - j] = CRGB(0, 0, 0);
+    }
+  }
+
+  leds[2 + x][6 + y] = CHSV(state, 255, 255);
   for (int j = 0; j < 3; j++) {
-    leds[3 + x][NUM_LEDS_V - 6 - j] = CHSV(state, 255, 255);
+    leds[3 + x][5 + j + y] = CHSV(state, 255, 255);
   }
   for (int j = 0; j < 5; j++) {
-    for (int i = 0; i < 4; i++) {
-        leds[4 + i + x][NUM_LEDS_V - 5 - j - y] = CHSV(state, 255, 255);
+    for (int i = 0; i < 3; i++) {
+        leds[4 + i + x][4 + j +y] = CHSV(state, 255, 255);
     }
   }
   for (int j = 0; j < 3; j++) {
-    leds[8 + x][NUM_LEDS_V - 6 - j] = CHSV(state, 255, 255);
+    leds[7 + x][5 + j + y] = CHSV(state, 255, 255);
   }
   for (int j = 0; j < 14; j++) {
-    leds[9+x][NUM_LEDS_V - 7 - j] = CHSV(state, 255, 255);
+    leds[8 + x][6 + j + y] = CHSV(state, 255, 255);
   }
   for (int j = 0; j < 3; j++) {
-    leds[10+x][NUM_LEDS_V - 18 - j] = CHSV(state, 255, 255);
+    leds[9 + x][17 + j + y] = CHSV(state, 255, 255);
   }
-  leds[11+x][NUM_LEDS_V - 17] = CHSV(state, 255, 255);
-  leds[12+x][NUM_LEDS_V - 16] = CHSV(state, 255, 255);
+  leds[10 + x][16 + y] = CHSV(state, 255, 255);
+  leds[11 + x][15 + y] = CHSV(state, 255, 255);
   for (int j = 0; j < 2; j++) {
-    leds[13+x][NUM_LEDS_V - 14 - j] = CHSV(state, 255, 255);
+    leds[12+x][13 + j + y] = CHSV(state, 255, 255);
   }
 }
 
@@ -514,11 +519,12 @@ void showPatterns() {
 //    waitingTime = 1000;
 //  }
   else if (submode[0] == 14) {
+    state = (state + random8(8) - 1 + 256) % 256;
     dancingNote(state);
-    waitingTime = pspeed * pspeed * 62 + 8;
+    waitingTime = pspeed * pspeed * 187 + 8;
   }
   else if (submode[0] == 13) {
-    fire(30, 96, 192, 24);
+    fire(24, 96, 192, 24);
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 12) {
@@ -534,67 +540,67 @@ void showPatterns() {
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 9) {
+    state = (state + random8(8)) % 256;
     for (int i = 0; i < NUM_LEDS_H; i++) {
       for (int j = 0; j < NUM_LEDS_V; j++) {
         leds[i][NUM_LEDS_V - 1 - j] = CHSV(((state + (rand() % 12 - 1) + j) - 1) % 256, 255, 255);
       }
     }
-    state = (state + rand() % 8) % 256;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 8) {
+    state = (state + 1) % NUM_LEDS_V;
     for (int i = 0; i < NUM_LEDS_H; i++) {
       for (int j = 0; j < NUM_LEDS_V; j++) {
       leds[i][NUM_LEDS_V - 1 - j] = CRGB((7 + 256 / NUM_LEDS_V * (state + i - j) - 1 + 256) % 256, (7 + 256 / NUM_LEDS_V * (state - i - j) - 1 + 256) % 256, (7 + 256 / NUM_LEDS_V * (state + i + j) - 1) % 256);
       }
     }
-    state = (state + 1) % NUM_LEDS_V;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 7) {
-    rainbow(state, 0);
     state = (state + (-1 + random8(4))) % NUM_LEDS_V;
+    rainbow(state, 0);
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 6) {
-    rainbow(state, 3);
     state = (state + 1) % NUM_LEDS_V;
+    rainbow(state, 3);
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 5) {
+    state = (state + 1) % NUM_LEDS_V;
     rainbow(state, 0);
     addGlitter(128, 10);
-    state = (state + 1) % NUM_LEDS_V;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 4) {
-    rainbow(state, 0);
     state = (state + 1) % NUM_LEDS_V;
+    rainbow(state, 0);
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 3) {
+    state = (state + 1) % NUM_LEDS_V;
     rgbCurtain(state, 5);
     addGlitter(96, 12);
-    state = (state + 1) % NUM_LEDS_V;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 2) {
-    rgbCurtain(state, 5);
     state = (state + 1) % NUM_LEDS_V;
+    rgbCurtain(state, 5);
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else if (submode[0] == 1) {
-    rgbCurtain(state, 2);
     state = (state + 1) % NUM_LEDS_V;
+    rgbCurtain(state, 2);
     waitingTime = pspeed * pspeed * 62 + 8;
   }
   else { // submode[0] == 0
+    state = (state + 1) % NUM_LEDS_V;
     for (int i = 0; i < NUM_LEDS_H; i++) {
       for (int j = 0; j < NUM_LEDS_V; j++) {
         leds[i][NUM_LEDS_V - 1 - j] = CRGB::Black;
       }
     }
-    state = (state + 1) % NUM_LEDS_V;
     waitingTime = pspeed * pspeed * 62 + 8;
   }
 
