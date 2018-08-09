@@ -467,11 +467,11 @@ void plasma(int state, uint8_t chance=4, uint8_t magnitude=2, uint8_t fadeStreng
     }
   }
 	
-  leds[new_x][new_y] = CHSV(hue, 255, 255);
+  leds[new_x][new_y] = CHSV(hue, 255, 255).nscale8(255));
 	  
   for (int j = 1; j <= (NUM_LEDS_V/2); j++) {
-    leds[(new_x)][(new_y+j)%NUM_LEDS_V] = leds[(new_x)][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
-    leds[(new_x)][(new_y-j)%NUM_LEDS_V] = leds[(new_x)][(new_y+1-j)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
+    leds[new_x][(new_y+j)%NUM_LEDS_V] = leds[(new_x)][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
+    leds[new_x][(new_y-j)%NUM_LEDS_V] = leds[(new_x)][(new_y+1-j)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
   }
   for (int i = 1; i <= (NUM_LEDS_H/2); i++) {
     leds[(new_x+i)%NUM_LEDS_H][new_y] = leds[(new_x-1+i)%NUM_LEDS_H][new_y].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
