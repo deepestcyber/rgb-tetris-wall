@@ -453,7 +453,7 @@ void plasma(int state, uint8_t chance=4, uint8_t magnitude=2, uint8_t fadeStreng
   int y = state%NUM_LEDS_V;
   int x = (state-y)/NUM_LEDS_V;
 
-  uint8_t hue = (rgb2hsv_approximate(leds[x][y]).hue + random8(chance)+1) % 256;
+  uint8_t hue = (rgb2hsv_approximate(leds[x][y]).hue + random8(chance) + 1) % 256;
   
   //int new_x = (x + (random8(1+2*magnitude)-magnitude) + NUM_LEDS_H) % NUM_LEDS_H;
   //int new_y = (y + (random8(1+2*magnitude)-magnitude) + NUM_LEDS_V) % NUM_LEDS_V;
@@ -470,8 +470,8 @@ void plasma(int state, uint8_t chance=4, uint8_t magnitude=2, uint8_t fadeStreng
   leds[new_x][new_y] = CHSV(hue, 255, 255).nscale8(255));
 	  
   for (int j = 1; j <= (NUM_LEDS_V/2); j++) {
-    leds[new_x][(new_y+j)%NUM_LEDS_V] = leds[(new_x)][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
-    leds[new_x][(new_y-j)%NUM_LEDS_V] = leds[(new_x)][(new_y+1-j)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
+    leds[new_x][(new_y+j)%NUM_LEDS_V] = leds[new_x][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
+    leds[new_x][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[new_x][(new_y+1-j)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
   }
   for (int i = 1; i <= (NUM_LEDS_H/2); i++) {
     leds[(new_x+i)%NUM_LEDS_H][new_y] = leds[(new_x-1+i)%NUM_LEDS_H][new_y].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
@@ -483,6 +483,26 @@ void plasma(int state, uint8_t chance=4, uint8_t magnitude=2, uint8_t fadeStreng
       //leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y+1-j+NUM_LEDS_V)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
 	  }
   }
+  state = new_x*NUM_LEDS_V + new_y;
+}
+
+void blob(int state, uint8_t magnitude=2, uint8_t fadeStrength=200, uint8_t chanceOfFade=0) {
+  int y = state%NUM_LEDS_V;
+  int x = (state-y)/NUM_LEDS_V;
+
+  uint8_t hue = (rgb2hsv_approximate(leds[x][y]).hue + random8(chance) + 1) % 256;
+  
+  int new_x = (x + (random8(1+2*magnitude)-magnitude) + NUM_LEDS_H) % NUM_LEDS_H;
+  int new_y = (y + (random8(1+2*magnitude)-magnitude) + NUM_LEDS_V) % NUM_LEDS_V;
+
+  for (int i = 0; i < NUM_LEDS_H; i++) {
+    for (int j = 0; j < NUM_LEDS_V; j++) {
+      uint8_t h_shift = (NUM_LEDS_H/2)-abs((NUM_LEDS_H/2)-abs(i-new_x));
+      uint8_t v_shift = (NUM_LEDS_V/2)-abs((NUM_LEDS_V/2)-abs(j-new_y));
+	  leds[i][j] = CHSV(hue + h_shift * 4), 255, 255);
+    }
+  }
+	
   state = new_x*NUM_LEDS_V + new_y;
 }
 
