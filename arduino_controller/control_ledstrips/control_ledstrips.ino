@@ -65,8 +65,8 @@ Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, STATUS_LEDS_P
 // modes: 0 = light patterns, 1 = image stream (24bit), 2 = music patterns, 3 = NES video stream
 uint8_t mode = 0;
 uint8_t modeMax = 4;
-uint8_t submode [4] = {18, 0, 0, 0};
-uint8_t submodeMax [4] = {20, 42, 4, 1}; // Used for all mode switches
+uint8_t submode [4] = {2, 0, 0, 0};
+uint8_t submodeMax [4] = {20, 41, 4, 1}; // Used for all mode switches
 
 int photoRSTState = 0;      // photo resistor for regulating brightness
 float photoLeakeRate = 0.9; // for smoothing the photo resistor [0,1]
@@ -86,7 +86,7 @@ const uint8_t valueBrightness [5] = {12, 25, 54, 118, 254}; // brightness for wa
 const uint8_t statusBrightness = 127;  // brightness for STATUS leds [0,255]
 // const int valueb [5][4] = {{3, 9, 27, 81}, {4, 12, 36, 108}, {5, 15, 45, 135}, {7, 21, 63, 189}, {9, 27, 81, 243}};  // deprecated
 
-int state = 0;
+int state = 30;
 
 byte data[NUM_BYTES_STREAM];
 
@@ -449,17 +449,14 @@ void addGlitter(uint8_t chanceOfGlitter=128, uint8_t maxNumberOfGlitter=1) {
   }
 }
 
-void plasma(int state, uint8_t chance=4, uint8_t magnitude=2, uint8_t fadeStrength=200, uint8_t chanceOfFade=0) {
+int plasma(int state, uint8_t chance=4, uint8_t magnitude=2, uint8_t fadeStrength=200, uint8_t chanceOfFade=0) {
   int y = state%NUM_LEDS_V;
   int x = (state-y)/NUM_LEDS_V;
 
   uint8_t hue = (rgb2hsv_approximate(leds[x][y]).hue + random8(chance) + 1) % 256;
   
-  //int new_x = (x + (random8(1+2*magnitude)-magnitude) + NUM_LEDS_H) % NUM_LEDS_H;
-  //int new_y = (y + (random8(1+2*magnitude)-magnitude) + NUM_LEDS_V) % NUM_LEDS_V;
-  //int new_x = (x + random8(1+2*magnitude) + NUM_LEDS_H) % NUM_LEDS_H;
-  int new_x = (x + NUM_LEDS_H + 1) % NUM_LEDS_H;
-  int new_y = (y + NUM_LEDS_V + 1) % NUM_LEDS_V;
+  int new_x = (x + (random8(1+2*magnitude)-magnitude) + NUM_LEDS_H) % NUM_LEDS_H;
+  int new_y = (y + (random8(1+2*magnitude)-magnitude) + NUM_LEDS_V) % NUM_LEDS_V;
 
   for (int i = 0; i < NUM_LEDS_H; i++) {
     for (int j = 0; j < NUM_LEDS_V; j++) {
@@ -472,22 +469,24 @@ void plasma(int state, uint8_t chance=4, uint8_t magnitude=2, uint8_t fadeStreng
 	  
   for (int j = 1; j <= (NUM_LEDS_V/2); j++) {
     leds[new_x][(new_y+j)%NUM_LEDS_V] = leds[new_x][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
-    leds[new_x][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[new_x][(new_y+1-j)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
+    leds[new_x][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[new_x][(new_y+1-j+NUM_LEDS_V)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
   }
   for (int i = 1; i <= (NUM_LEDS_H/2); i++) {
     leds[(new_x+i)%NUM_LEDS_H][new_y] = leds[(new_x-1+i)%NUM_LEDS_H][new_y].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
     leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][new_y] = leds[(new_x+1-i+NUM_LEDS_H)%NUM_LEDS_H][new_y].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
     for (int j = 1; j <= (NUM_LEDS_V/2); j++) {
-      leds[(new_x+i)%NUM_LEDS_H][(new_y+j)%NUM_LEDS_V] = leds[(new_x+i)%NUM_LEDS_H][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
-      leds[(new_x+i)%NUM_LEDS_H][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[(new_x+i)%NUM_LEDS_H][(new_y+1-j+NUM_LEDS_V)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
-      leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y+j)%NUM_LEDS_V] = leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
-      leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y+1-j+NUM_LEDS_V)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
+      leds[(new_x+i)%NUM_LEDS_H][(new_y+j)%NUM_LEDS_V] = leds[(new_x+i)%NUM_LEDS_H][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength+(i)*(j-1)-chanceOfFade+random8(chanceOfFade*2));
+      leds[(new_x+i)%NUM_LEDS_H][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[(new_x+i)%NUM_LEDS_H][(new_y+1-j+NUM_LEDS_V)%NUM_LEDS_V].nscale8(fadeStrength+(i)*(j-1)-chanceOfFade+random8(chanceOfFade*2));
+      leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y+j)%NUM_LEDS_V] = leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength+(i)*(j-1)-chanceOfFade+random8(chanceOfFade*2));
+      leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y+1-j+NUM_LEDS_V)%NUM_LEDS_V].nscale8(fadeStrength+(i)*(j-1)-chanceOfFade+random8(chanceOfFade*2));
 	  }
   }
+
   state = new_x*NUM_LEDS_V + new_y;
+  return state;
 }
 
-void blob(int state, uint8_t chance=2, uint8_t magnitude=2, uint8_t fadeStrength=200, uint8_t chanceOfFade=0) {
+int blob(int state, uint8_t chance=2, uint8_t magnitude=2, uint8_t fadeStrength=200, uint8_t chanceOfFade=0) {
   int y = state%NUM_LEDS_V;
   int x = (state-y)/NUM_LEDS_V;
 
@@ -500,11 +499,12 @@ void blob(int state, uint8_t chance=2, uint8_t magnitude=2, uint8_t fadeStrength
     for (int j = 0; j < NUM_LEDS_V; j++) {
       uint8_t h_shift = (NUM_LEDS_H/2)-abs((NUM_LEDS_H/2)-abs(i-new_x));
       uint8_t v_shift = (NUM_LEDS_V/2)-abs((NUM_LEDS_V/2)-abs(j-new_y));
-	    leds[i][j] = CHSV((hue + (h_shift+v_shift) * 4) % 256, 255, 255);
+	    leds[i][j] = CHSV((hue + (h_shift+v_shift) * 8 - ((h_shift-1)*(v_shift-1))) % 256, 255, 255);
     }
   }
 	
   state = new_x*NUM_LEDS_V + new_y;
+  return state;
 }
 
 void dancingNote(int state) {
@@ -569,19 +569,19 @@ void showPatterns() {
 //    waitingTime = 1000;
 //  }
   else if (submode[0] == 19) {
-    blob(state, 12, 3, 230, 8);
+    state = blob(state, 12, 1, 230, 8);
     waitingTime = pspeed * pspeed * 250 + 8;
   }
   else if (submode[0] == 18) {
-    blob(state, 8, 2, 220, 0);
+    state = blob(state, 8, 2, 220, 0);
     waitingTime = pspeed * pspeed * 125 + 8;
   }
   else if (submode[0] == 17) {
-    plasma(state, 12, 3, 230, 8);
+    state = plasma(state, 12, 1, 230, 8);
     waitingTime = pspeed * pspeed * 250 + 8;
   }
   else if (submode[0] == 16) {
-    plasma(state, 8, 2, 220, 0);
+    state = plasma(state, 8, 2, 220, 0);
     waitingTime = pspeed * pspeed * 125 + 8;
   }
   else if (submode[0] == 15) {
