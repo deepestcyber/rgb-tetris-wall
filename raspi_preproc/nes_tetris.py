@@ -212,9 +212,9 @@ class NesTetris:
                     next_block = 1
             next_block_col = img.getpixel((15, 9))
         else:
-            if not self.is_pix_black(img.getpixel((60, 9))):
+            if not self.is_pix_black(img.getpixel((61, 10))):
                 next_block = 4
-                next_block_col = img.getpixel((60, 9))
+                next_block_col = img.getpixel((61, 10))
             else:
                 next_block = 3
                 next_block_col = img.getpixel((50, 9))
