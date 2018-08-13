@@ -65,8 +65,8 @@ Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, STATUS_LEDS_P
 // modes: 0 = light patterns, 1 = image stream (24bit), 2 = music patterns, 3 = NES video stream
 uint8_t mode = 0;
 uint8_t modeMax = 4;
-uint8_t submode [4] = {2, 0, 0, 0};
-uint8_t submodeMax [4] = {20, 42, 4, 1}; // Used for all mode switches
+uint8_t submode [4] = {16, 0, 0, 0};
+uint8_t submodeMax [4] = {20, 41, 4, 1}; // Used for all mode switches
 
 int photoRSTState = 0;      // photo resistor for regulating brightness
 float photoLeakeRate = 0.9; // for smoothing the photo resistor [0,1]
@@ -459,7 +459,8 @@ void plasma(int state, uint8_t chance=4, uint8_t magnitude=2, uint8_t fadeStreng
   //int new_y = (y + (random8(1+2*magnitude)-magnitude) + NUM_LEDS_V) % NUM_LEDS_V;
   //int new_x = (x + random8(1+2*magnitude) + NUM_LEDS_H) % NUM_LEDS_H;
   int new_x = (x + NUM_LEDS_H + 1) % NUM_LEDS_H;
-  int new_y = (y + NUM_LEDS_V + 1) % NUM_LEDS_V;
+  int new_y = (y + NUM_LEDS_V) % NUM_LEDS_V;
+  //int new_y = (y + NUM_LEDS_V + 1) % NUM_LEDS_V;
 
   for (int i = 0; i < NUM_LEDS_H; i++) {
     for (int j = 0; j < NUM_LEDS_V; j++) {
@@ -472,7 +473,7 @@ void plasma(int state, uint8_t chance=4, uint8_t magnitude=2, uint8_t fadeStreng
 	  
   for (int j = 1; j <= (NUM_LEDS_V/2); j++) {
     leds[new_x][(new_y+j)%NUM_LEDS_V] = leds[new_x][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
-    leds[new_x][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[new_x][(new_y+1-j)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
+    leds[new_x][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[new_x][(new_y+1-j+NUM_LEDS_V)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
   }
   for (int i = 1; i <= (NUM_LEDS_H/2); i++) {
     leds[(new_x+i)%NUM_LEDS_H][new_y] = leds[(new_x-1+i)%NUM_LEDS_H][new_y].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
@@ -480,8 +481,8 @@ void plasma(int state, uint8_t chance=4, uint8_t magnitude=2, uint8_t fadeStreng
     for (int j = 1; j <= (NUM_LEDS_V/2); j++) {
       leds[(new_x+i)%NUM_LEDS_H][(new_y+j)%NUM_LEDS_V] = leds[(new_x+i)%NUM_LEDS_H][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
       leds[(new_x+i)%NUM_LEDS_H][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[(new_x+i)%NUM_LEDS_H][(new_y+1-j+NUM_LEDS_V)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
-      leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y+j)%NUM_LEDS_V] = leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
-      leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y+1-j+NUM_LEDS_V)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
+      //leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y+j)%NUM_LEDS_V] = leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
+      //leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y+1-j+NUM_LEDS_V)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
 	  }
   }
   state = new_x*NUM_LEDS_V + new_y;
