@@ -66,7 +66,7 @@ Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, STATUS_LEDS_P
 uint8_t mode = 0;
 uint8_t modeMax = 4;
 uint8_t submode [4] = {2, 0, 0, 0};
-uint8_t submodeMax [4] = {18, 37, 4, 1}; // Used for all mode switches
+uint8_t submodeMax [4] = {20, 42, 4, 1}; // Used for all mode switches
 
 int photoRSTState = 0;      // photo resistor for regulating brightness
 float photoLeakeRate = 0.9; // for smoothing the photo resistor [0,1]
@@ -341,7 +341,7 @@ void updateStatus() {
   status_leds.setPixelColor(5, getNeoPixelWheel((180/5*(5-brightness-1)%180) & 255));
   status_leds.setPixelColor(7, getNeoPixelWheel((180/5*pspeed%180) & 255));
 
-  status_leds.setBrightness((int)photoRSTState/1023.*valueBrightness[brightness]*0.66);
+  status_leds.setBrightness((int)photoRSTState/1023.*valueBrightness[brightness]*0.33);
   if (mode == 0 || process_it) status_leds.show();
 }
 
@@ -467,7 +467,8 @@ void plasma(int state, uint8_t chance=4, uint8_t magnitude=2, uint8_t fadeStreng
     }
   }
 	
-  leds[new_x][new_y] = CHSV(hue, 255, 255).nscale8(255));
+  //leds[new_x][new_y] = CHSV(hue, 255, 255).nscale8(255);
+  leds[new_x][new_y] = CHSV(hue, 255, 255);
 	  
   for (int j = 1; j <= (NUM_LEDS_V/2); j++) {
     leds[new_x][(new_y+j)%NUM_LEDS_V] = leds[new_x][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
@@ -477,16 +478,16 @@ void plasma(int state, uint8_t chance=4, uint8_t magnitude=2, uint8_t fadeStreng
     leds[(new_x+i)%NUM_LEDS_H][new_y] = leds[(new_x-1+i)%NUM_LEDS_H][new_y].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
     leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][new_y] = leds[(new_x+1-i+NUM_LEDS_H)%NUM_LEDS_H][new_y].nscale8(fadeStrength-chanceOfFade+random8(chanceOfFade*2));
     for (int j = 1; j <= (NUM_LEDS_V/2); j++) {
-      //leds[(new_x+i)%NUM_LEDS_H][(new_y+j)%NUM_LEDS_V] = leds[(new_x+i)%NUM_LEDS_H][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
-      //leds[(new_x+i)%NUM_LEDS_H][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[(new_x+i)%NUM_LEDS_H][(new_y+1-j+NUM_LEDS_V)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
-      //leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y+j)%NUM_LEDS_V] = leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
-      //leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y+1-j+NUM_LEDS_V)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
+      leds[(new_x+i)%NUM_LEDS_H][(new_y+j)%NUM_LEDS_V] = leds[(new_x+i)%NUM_LEDS_H][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
+      leds[(new_x+i)%NUM_LEDS_H][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[(new_x+i)%NUM_LEDS_H][(new_y+1-j+NUM_LEDS_V)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
+      leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y+j)%NUM_LEDS_V] = leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y-1+j)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
+      leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y-j+NUM_LEDS_V)%NUM_LEDS_V] = leds[(new_x-i+NUM_LEDS_H)%NUM_LEDS_H][(new_y+1-j+NUM_LEDS_V)%NUM_LEDS_V].nscale8(fadeStrength+(i-1)*j-chanceOfFade+random8(chanceOfFade*2));
 	  }
   }
   state = new_x*NUM_LEDS_V + new_y;
 }
 
-void blob(int state, uint8_t magnitude=2, uint8_t fadeStrength=200, uint8_t chanceOfFade=0) {
+void blob(int state, uint8_t chance=2, uint8_t magnitude=2, uint8_t fadeStrength=200, uint8_t chanceOfFade=0) {
   int y = state%NUM_LEDS_V;
   int x = (state-y)/NUM_LEDS_V;
 
@@ -499,7 +500,7 @@ void blob(int state, uint8_t magnitude=2, uint8_t fadeStrength=200, uint8_t chan
     for (int j = 0; j < NUM_LEDS_V; j++) {
       uint8_t h_shift = (NUM_LEDS_H/2)-abs((NUM_LEDS_H/2)-abs(i-new_x));
       uint8_t v_shift = (NUM_LEDS_V/2)-abs((NUM_LEDS_V/2)-abs(j-new_y));
-	  leds[i][j] = CHSV(hue + h_shift * 4), 255, 255);
+	    leds[i][j] = CHSV((hue + (h_shift+v_shift) * 4) % 256, 255, 255);
     }
   }
 	
@@ -567,6 +568,14 @@ void showPatterns() {
 //    }
 //    waitingTime = 1000;
 //  }
+  else if (submode[0] == 19) {
+    blob(state, 12, 3, 230, 8);
+    waitingTime = pspeed * pspeed * 250 + 8;
+  }
+  else if (submode[0] == 18) {
+    blob(state, 8, 2, 220, 0);
+    waitingTime = pspeed * pspeed * 125 + 8;
+  }
   else if (submode[0] == 17) {
     plasma(state, 12, 3, 230, 8);
     waitingTime = pspeed * pspeed * 250 + 8;
