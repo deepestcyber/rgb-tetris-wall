@@ -256,7 +256,7 @@ class NesTetris:
         img.convert("RGB").save("debug.png", "PNG")
         #read
         score = 0 \
-                + 100000 * self.get_number(img.crop((1, 0, 20, 16))) \
+                + 100000 * self.get_number(img.crop((1, 0, 1 + 20, 16))) \
                 + 10000 * self.get_number(img.crop((21, 0, 21 + 20, 16))) \
                 + 1000 * self.get_number(img.crop((41, 0, 41 + 20, 16))) \
                 + 100 * self.get_number(img.crop((62, 0, 62 + 20, 16))) \
