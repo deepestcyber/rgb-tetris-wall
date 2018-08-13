@@ -82,7 +82,7 @@ class NesTetris:
 
 
     def get_number(self, img):
-        img.convert("RGB").save("debug2.png", "PNG")
+        #img.convert("RGB").save("debug2.png", "PNG")
         number = 0
 
         #read
