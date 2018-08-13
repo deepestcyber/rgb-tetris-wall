@@ -65,7 +65,7 @@ Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, STATUS_LEDS_P
 // modes: 0 = light patterns, 1 = image stream (24bit), 2 = music patterns, 3 = NES video stream
 uint8_t mode = 0;
 uint8_t modeMax = 4;
-uint8_t submode [4] = {2, 0, 0, 0};
+uint8_t submode [4] = {18, 0, 0, 0};
 uint8_t submodeMax [4] = {20, 42, 4, 1}; // Used for all mode switches
 
 int photoRSTState = 0;      // photo resistor for regulating brightness
