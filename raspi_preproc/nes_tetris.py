@@ -82,7 +82,7 @@ class NesTetris:
 
 
     def get_number(self, img):
-        #img.convert("RGB").save("debug.png", "PNG")
+        img.convert("RGB").save("debug2.png", "PNG")
         number = 0
 
         #read
@@ -253,13 +253,13 @@ class NesTetris:
 
 
     def extract_score(self, img):
-        #img.convert("RGB").save("debug.png", "PNG")
+        img.convert("RGB").save("debug.png", "PNG")
         #read
         score = 0 \
-                + 100000 * self.get_number(img.crop((0, 0, 20, 16))) \
-                + 10000 * self.get_number(img.crop((20, 0, 20 + 20, 16))) \
+                + 100000 * self.get_number(img.crop((1, 0, 20, 16))) \
+                + 10000 * self.get_number(img.crop((21, 0, 21 + 20, 16))) \
                 + 1000 * self.get_number(img.crop((41, 0, 41 + 20, 16))) \
-                + 100 * self.get_number(img.crop((61, 0, 61 + 20, 16))) \
+                + 100 * self.get_number(img.crop((62, 0, 62 + 20, 16))) \
                 + 10 * self.get_number(img.crop((82, 0, 82 + 20, 16))) \
                 + self.get_number(img.crop((102, 0, 102 + 20, 16)))
 
@@ -295,8 +295,8 @@ class NesTetris:
         #img.convert("RGB").save("debug.png", "PNG")
         #read
         lines = 0 \
-                + 100 * self.get_number(img.crop((0, 0, 20, 16))) \
-                + 10 * self.get_number(img.crop((20, 0, 40, 16))) \
+                + 100 * self.get_number(img.crop((1, 0, 20, 16))) \
+                + 10 * self.get_number(img.crop((21, 0, 41, 16))) \
                 + self.get_number(img.crop((41, 0, 61, 16)))
         #write
         for i in range(max(int(lines/10), 0), 28):
