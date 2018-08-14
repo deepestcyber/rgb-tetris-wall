@@ -212,9 +212,9 @@ class NesTetris:
                     next_block = 1
             next_block_col = img.getpixel((15, 9))
         else:
-            if not self.is_pix_black(img.getpixel((61, 10))):
+            if not self.is_pix_black(img.getpixel((62, 10))):
                 next_block = 4
-                next_block_col = img.getpixel((61, 10))
+                next_block_col = img.getpixel((62, 10))
             else:
                 next_block = 3
                 next_block_col = img.getpixel((50, 9))
@@ -253,7 +253,7 @@ class NesTetris:
 
 
     def extract_score(self, img):
-        img.convert("RGB").save("debug.png", "PNG")
+        #img.convert("RGB").save("debug.png", "PNG")
         #read
         score = 0 \
                 + 100000 * self.get_number(img.crop((1, 0, 1 + 20, 16))) \
