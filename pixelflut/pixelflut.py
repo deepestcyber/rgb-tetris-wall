@@ -74,14 +74,16 @@ class Client(object):
 
 
 class Canvas(object):
-    size  = 640, 480
+    size  = 16, 24
+    pg_scale = 16
+    pg_size = (size[0] * pg_scale, size[1] * pg_scale)
     flags = pygame.RESIZABLE#|pygame.FULLSCREEN
 
     def __init__(self):
         pygame.init()
         pygame.mixer.quit()
         self.set_title()
-        self.screen = pygame.display.set_mode(self.size, self.flags)
+        self.screen = pygame.display.set_mode(self.pg_size, self.flags)
         self.frames = 0
         self.width  = self.screen.get_width()
         self.height = self.screen.get_height()
@@ -165,7 +167,19 @@ class Canvas(object):
 
     def get_pixel(self, x, y):
         ''' Get colour of a pixel as an (r,g,b) tuple. '''
-        return self.screen.get_at((x,y))
+        return self.screen.get_at((x*self.pg_scale,y*self.pg_scale))
+
+    def _set_scaled_pixel(self, pos, col):
+        if self.pg_scale == 1:
+            self.screen.set_at(pos, col)
+        else:
+            rect = pygame.Rect(
+                pos[0] * self.pg_scale,
+                pos[1] * self.pg_scale,
+                self.pg_scale,
+                self.pg_scale,
+            )
+            pygame.draw.rect(self.screen, col, rect)
 
     def set_pixel(self, x, y, r, g, b, a=255):
         ''' Change the colour of a pixel. If an alpha value is given, the new
@@ -173,13 +187,13 @@ class Canvas(object):
         if a == 0:
             return
         elif a == 0xff:
-            self.screen.set_at((x, y), (r,g,b))
+            self._set_scaled_pixel((x, y), (r,g,b))
         elif 0 <= x < self.width and 0 <= y < self.height:
             r2, g2, b2, a2 = self.screen.get_at((x, y))
             r = (r2*(0xff-a)+(r*a)) / 0xff
             g = (g2*(0xff-a)+(g*a)) / 0xff
             b = (b2*(0xff-a)+(b*a)) / 0xff
-            self.screen.set_at((x, y), (r,g,b))
+            self._set_scaled_pixel((x, y), (r,g,b))
 
     def clear(self, r=0, g=0, b=0, a=255):
         ''' Fill the entire screen with a solid colour (default: black)'''
