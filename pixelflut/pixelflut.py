@@ -59,7 +59,7 @@ class Client(object):
             while self.socket:
                 gsleep(10.0/self.pps)
                 for i in range(10):
-                    line = readline(1024).strip()
+                    line = readline(1600).strip()
                     if not line:
                         break
                     arguments = line.split()

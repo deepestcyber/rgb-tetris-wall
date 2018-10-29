@@ -110,3 +110,23 @@ def command_px(canvas, client, *args):
 
     canvas.set_pixel(x, y, r, g, b, a)
     return True
+
+@on('COMMAND-WL')
+def command_wl(canvas, client, *args):
+    global log
+    log.debug("wl command event %s %d args", client, len(args))
+    import base64
+    w, h, d = 16, 24, 3
+    raw_size = w * h * d
+    b64_size = int(raw_size + raw_size/3)
+    assert len(args) == 1
+    base = args[0]
+    assert len(base) == b64_size
+    data = base64.b64decode(base)
+    assert len(data) == w*h*d
+
+    for y in range(h):
+        for x in range(w):
+            p = (y*w + x) * 3
+            canvas.set_pixel(x, y, data[p], data[p+1], data[p+2], 0xff)
+    return True
