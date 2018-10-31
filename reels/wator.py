@@ -1,3 +1,17 @@
+"""
+RGB Reel Wator Simulation
+
+A reel implementing the Wator Simulation. Uses the energy based version for
+the predators. When the simulation hits either final state it restarts.
+
+TODO: configuration of parameters from outside (program args)
+TODO: biased initialization
+TODO: non-energy-based variant
+
+See https://en.wikipedia.org/wiki/Wa-Tor
+
+Created by kratenko
+"""
 import numpy as np
 import random
 import time

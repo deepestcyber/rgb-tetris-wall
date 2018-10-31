@@ -1,15 +1,20 @@
-import numpy as np
-import random
-import time
-import math
-import os
-from PIL import Image
+""""
+Wireworld Reel
 
-from fluter import send_array, send_image
+Implementation for Wireworld for our RGB-Wall
+
+See https://en.wikipedia.org/wiki/Wireworld
+
+Created by kratenko
+"""
+
+import numpy as np
+import time
+
+from fluter import send_array
 
 W, H = 16, 24
 
-f = np.zeros((H, W), dtype=np.uint8)
 EMPTY = 0
 WIRE = 1
 HEAD = 2
@@ -67,14 +72,11 @@ def build_field(s):
     return f
 
 
-f = build_field(b_xor)
-
 def moore_neigh(pos):
     y, x = pos
     n = ((y - 1, x - 1), (y - 1, x), (y - 1, x + 1),
          (y, x - 1), (y, x + 1),
          (y + 1, x - 1), (y + 1, x), (y + 1, x + 1))
-    #print(n)
     n = tuple(pos for pos in n if 0 <= pos[1] < W and 0 <= pos[0] < H)
     return n
 
@@ -114,6 +116,8 @@ def send(f):
     d[f == TAIL] = tail
     send_array(d)
 
+
+f = build_field(b_xor)
 
 while True:
     send(f)

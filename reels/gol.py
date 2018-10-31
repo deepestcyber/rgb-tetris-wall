@@ -1,3 +1,13 @@
+"""
+RGB-Reel Conway's Game of Life
+
+Simple implementation of Conway's Game of Life as reel for your wall. Runs in
+a torus world and get's initialized randomly.
+
+See https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
+
+created by kratenko
+"""
 import numpy as np
 import time
 from fluter import send_raw
@@ -10,8 +20,8 @@ glider = [[1, 0, 0],
           [1, 1, 0]]
 
 f = np.random.randint(2, size=(h, w), dtype=np.uint8)
-f = np.zeros((h, w), dtype=np.uint8)
-f[:3, :3] = glider
+#f = np.zeros((h, w), dtype=np.uint8)
+#f[:3, :3] = glider
 
 def neigh(f, pos):
     x, y = pos

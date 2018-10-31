@@ -63,10 +63,11 @@ def send_pixel(pos, colour):
     assert len(pos) == 2
     assert 3 <= len(colour) <= 4
     connect()
+    args = tuple(pos) + tuple(colour)
     if len(colour) == 3:
-        sock.send(b"PX %d %d %02x%02x%02x\n" % pos + colour)
+        sock.send(b"PX %d %d %02x%02x%02x\n" % args)
     else:
-        sock.send(b"PX %d %d %02x%02x%02x%0x2\n" % pos + colour)
+        sock.send(b"PX %d %d %02x%02x%02x%02x\n" % args)
 
 
 def send_raw(data):
