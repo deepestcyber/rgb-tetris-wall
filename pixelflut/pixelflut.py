@@ -59,6 +59,8 @@ class Client(object):
             while self.socket:
                 gsleep(10.0/self.pps)
                 for i in range(10):
+                    # wall has 16*24 pixels a 3 byte = 1152
+                    # factor 4/3 for base64 encoding: 1536 so settle for 1600 with overhead
                     line = readline(1600).strip()
                     if not line:
                         break
@@ -70,11 +72,9 @@ class Client(object):
             self.disconnect()
 
 
-
-
-
 class Canvas(object):
-    size  = 16, 24
+    size = 16, 24
+    depth = 3
     pg_scale = 16
     pg_size = (size[0] * pg_scale, size[1] * pg_scale)
     flags = pygame.RESIZABLE#|pygame.FULLSCREEN

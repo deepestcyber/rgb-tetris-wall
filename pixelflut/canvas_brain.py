@@ -6,15 +6,18 @@ log.debug('lol')
 
 ticks = 0
 
+
 @on('RESIZE')
 def resize(canvas):
     global log
     log.debug('resize event')
 
+
 @on('QUIT')
 def quit(canvas):
     global log
     log.debug('quit event')
+
 
 @on('TICK')
 def tick(canvas):
@@ -24,15 +27,18 @@ def tick(canvas):
         print('.')
     ticks += 1
 
+
 @on('CONNECT')
 def connect(canvas, client):
     global log
     log.debug('connect event %s', client)
 
+
 @on('DISCONNECT')
 def disconnect(canvas, client):
     global log
     log.debug('disconnect event %s', client)
+
 
 @on('COMMAND-PX')
 def command_px(canvas, client, *args):
@@ -56,13 +62,13 @@ def command_px(canvas, client, *args):
     canvas.set_pixel(x, y, r, g, b, a)
     return True
 
+
 @on('COMMAND-WL')
 def command_wl(canvas, client, *args):
     global log
     log.debug("wl command event %s %d args", client, len(args))
-    import base64
-    w, h, d = 16, 24, 3
-    raw_size = w * h * d
+    w, h = canvas.size
+    raw_size = w * h * canvas.depth
     b64_size = int(raw_size + raw_size/3)
     assert len(args) == 1
     base = args[0]
