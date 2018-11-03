@@ -1,5 +1,4 @@
 import logging
-import base64
 log = logging.getLogger('brain')
 
 log.debug('lol')
@@ -65,6 +64,7 @@ def command_px(canvas, client, *args):
 
 @on('COMMAND-WL')
 def command_wl(canvas, client, *args):
+    import base64
     global log
     log.debug("wl command event %s %d args", client, len(args))
     w, h = canvas.size
@@ -74,7 +74,7 @@ def command_wl(canvas, client, *args):
     base = args[0]
     assert len(base) == b64_size
     data = base64.b64decode(base)
-    assert len(data) == w*h*d
+    assert len(data) == w * h * canvas.depth
 
     for y in range(h):
         for x in range(w):

@@ -21,12 +21,14 @@ log = logging.getLogger('pixelflut')
 
 async = spawn
 
+
 class Client(object):
     pps = 1000
 
-    def __init__(self, canvas):
+    def __init__(self, canvas, addr):
         self.canvas = canvas
         self.socket = None
+        self.addr = addr
         self.connect_ts = time.time()
         # And this is used to limit clients to X messages per tick
         # We start at 0 (instead of x) to add a reconnect-penalty.
@@ -71,6 +73,9 @@ class Client(object):
         finally:
             self.disconnect()
 
+    def __str__(self):
+        return "<pixelflut.Client fd:{}, {}:{}>".format(self.socket.fileno(), self.addr[0], self.addr[1])
+
 
 class Canvas(object):
     size = 16, 24
@@ -110,7 +115,7 @@ class Canvas(object):
                 client.disconnect()
                 client.task.kill()
             else:
-                client = self.clients[ip] = Client(self)
+                client = self.clients[ip] = Client(self, addr)
 
             client.task = spawn(client.serve, sock)
 
