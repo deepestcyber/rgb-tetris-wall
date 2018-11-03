@@ -5,14 +5,18 @@ Implementation for Wireworld for our RGB-Wall
 
 See https://en.wikipedia.org/wiki/Wireworld
 
+TODO: multiple board layouts to chose from by program parm
+TODO: set board layout by program parm
+
 Created by kratenko
 """
 
 import numpy as np
 import time
 
-from fluter import send_array
+from fluter import Fluter
 
+fluter = Fluter()
 W, H = 16, 24
 
 EMPTY = 0
@@ -114,7 +118,7 @@ def send(f):
     d[f == WIRE] = wire
     d[f == HEAD] = head
     d[f == TAIL] = tail
-    send_array(d)
+    fluter.send_array(d)
 
 
 f = build_field(b_xor)

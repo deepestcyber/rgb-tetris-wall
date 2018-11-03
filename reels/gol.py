@@ -10,7 +10,9 @@ created by kratenko
 """
 import numpy as np
 import time
-from fluter import send_raw
+from fluter import Fluter
+
+fluter = Fluter()
 
 w = 16
 h = 24
@@ -22,6 +24,7 @@ glider = [[1, 0, 0],
 f = np.random.randint(2, size=(h, w), dtype=np.uint8)
 #f = np.zeros((h, w), dtype=np.uint8)
 #f[:3, :3] = glider
+
 
 def neigh(f, pos):
     x, y = pos
@@ -61,7 +64,7 @@ def to_raw(fin):
 
 
 while True:
-    send_raw(to_raw(f))
+    fluter.send_raw(to_raw(f))
     f = next_gen(f)
     time.sleep(.2)
 

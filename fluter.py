@@ -1,2 +1,2 @@
 # just wrap fluter module, so pycharm finds it
-from reels.fluter import *
+from reels.fluter import Fluter

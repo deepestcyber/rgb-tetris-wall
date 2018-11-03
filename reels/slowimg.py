@@ -14,7 +14,9 @@ import time
 import numpy as np
 from PIL import Image
 
-from fluter import send_pixel
+from fluter import Fluter
+
+fluter = Fluter()
 
 
 def get_random_file(path):
@@ -30,7 +32,7 @@ def send(img):
     arr = np.array(img)
     for i in range(0, img.size[0]):
         for j in range(0, img.size[1]):
-            send_pixel((i, j), arr[j, i])
+            fluter.send_pixel((i, j), arr[j, i])
 
 
 while True:

@@ -19,7 +19,7 @@ import math
 import os
 from PIL import Image
 
-from fluter import send_array, send_image
+from fluter import Fluter
 
 W, H = 16, 24
 
@@ -30,7 +30,7 @@ FISH_ENERGY = 5
 SHARK_STARVE = 2
 SHARK_BREED = 10
 
-
+fluter = Fluter()
 img_skull = Image.open(os.path.join("img", "skull.png"))
 img_fish = Image.open(os.path.join("img", "cheep-cheep-blue.png"))
 
@@ -43,7 +43,7 @@ def send(f):
     d[f<0] = shark
     d[f==0] = water
     d[f>0] = fish
-    send_array(d)
+    fluter.send_array(d)
 
 
 def get_neigh(y, x):
@@ -146,12 +146,12 @@ while True:
     send(f)
     # eval
     if fish == 0 and sharks == 0:
-        send_image(img_skull)
+        fluter.send_image(img_skull)
         time.sleep(2)
         redo()
         continue
     elif fish == fields:
-        send_image(img_fish)
+        fluter.send_image(img_fish)
         time.sleep(2)
         redo()
         continue

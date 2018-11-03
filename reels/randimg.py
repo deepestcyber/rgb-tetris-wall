@@ -12,7 +12,7 @@ import time
 
 from PIL import Image
 
-from fluter import send_image
+from fluter import Fluter
 
 
 def get_random_file(path):
@@ -24,9 +24,11 @@ def get_random_file(path):
     return os.path.join(path, files[index])
 
 
+fluter = Fluter()
+
 while True:
     # prepare image (open, convert to rgba, resize, convert to array)
     fn = get_random_file("../images")
     print("sending image '{}'".format(fn))
-    send_image(Image.open(fn))
+    fluter.send_image(Image.open(fn))
     time.sleep(1)
