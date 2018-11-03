@@ -19,7 +19,9 @@ import os
 
 
 class Fluter:
-    def __init__(self, host=None, width=16, height=24, depth=3):
+    DEFAULT_HOST = None
+
+    def __init__(self, host=DEFAULT_HOST, width=16, height=24, depth=3):
         self.host, self.port = self._parse_host(host)
         self.width = width
         self.height = height
@@ -27,7 +29,7 @@ class Fluter:
         self.socket = None
 
     def _parse_host(self, host):
-        if not host:
+        if host is Fluter.DEFAULT_HOST:
             host = os.environ.get("PIXELFLUT_HOST", "localhost:1234")
         parts = host.split(":")
         if len(parts) == 2:
@@ -36,6 +38,7 @@ class Fluter:
             return parts[0], 1234
 
     def _connect(self):
+        # TODO: add a reconnect mechanic
         if not self.socket:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect((self.host, self.port))
