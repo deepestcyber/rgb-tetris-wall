@@ -13,55 +13,14 @@ import random
 
 from fluter import Fluter
 
-s = """
-                -
-      xxxx      -
-    xxaaaaxx    -
-  xxwaaooaawxx  -
- xwwaaooooaawwx -
-xwwbbaooooaawwwx-
- xwwaaaooaaawwx -
-  xwwaaaaaawwx  -
-   xxwaaaawxx   -
-     xxxxxx     -
-                -
-"""
-
-s = """
-                -
-      xxxx      -
-    xxwwwwxx    -
-  xxoaawwwwwxx  -
- xooooaawwwwwwx -
-xaooooaawwwwwwwx-
- xaooaaawwwwwwx -
-  xaaaawwwwwwx  -
-   xxawwwwwxx   -
-     xxxxxx     -
-                -
-"""
-
-s = """
-                -
-      xxxx      -
-    xxawwwxx    -
-  xxooaawwwwxx  -
- xaooooaawwwwwx -
-xbaooooaawwwwwwx-
- xaaooaaawwwwwx -
-  xaaaaawwwwwx  -
-   xxaawwwwxx   -
-     xxxxxx     -
-                -
-"""
 
 iris = """
                 -
-                -
       aaaa      -
-     aaooaa     -
+     aaaaaa     -
+    aaaooaaa    -
     aaooooaa    -
-   bbaooooaa    -
+    aaooooaa    -
     aaaooaaa    -
      aaaaaa     -
       aaaa      -
@@ -84,71 +43,71 @@ wwwwwwwwwwwwwwww-
 
 lid1 = """
 ................-
-......xxxx......-
-....xx    xx....-
-..xx        xx..-
-.x            x.-
+.....vxxxxv.....-
+...vxx    xxv...-
+.vxx        xxv.-
+vx            xv-
 x              x-
-.x            x.-
-..x          x..-
-...xx      xx...-
-.....xxxxxx.....-
+vx            xv-
+.vx          xv.-
+..vxx      xxv..-
+....vxxxxxxv....-
 ................-
 """
 
 lid2 = """
 ................-
-......xxxx......-
-....xxyyyyxx....-
-..xx xxxxxx xx..-
-.x            x.-
+.....vxxxxv.....-
+...vxxyyyyxxv...-
+.vxx xxxxxx xxv.-
+vx            xv-
 x              x-
-.x            x.-
-..x          x..-
-...xx      xx...-
-.....xxxxxx.....-
+vx            xv-
+.vx          xv.-
+..vxx      xxv..-
+....vxxxxxxv....-
 ................-
 """
 
 lid3 = """
 ................-
-......xxxx......-
-....xxyyyyxx....-
-..xxyyyyyyyyxx..-
-.x  xxyyyyxx  x.-
+.....vxxxxv.....-
+...vxxyyyyxxv...-
+.vxxyyyyyyyyxxv.-
+vx  xxyyyyxx  xv-
 x     xxxx     x-
-.x            x.-
-..x          x..-
-...xx      xx...-
-.....xxxxxx.....-
+vx            xv-
+.vx          xv.-
+..vxx      xxv..-
+....vxxxxxxv....-
 ................-
 """
 
 lid4 = """
 ................-
-......xxxx......-
-....xxyyyyxx....-
-..xxyyyyyyyyxx..-
-.xyyyyyyyyyyyyx.-
+.....vxxxxv.....-
+...vxxyyyyxxv...-
+.vxxyyyyyyyyxxv.-
+vxyyyyyyyyyyyyxv-
 x xxyyyyyyyxxx x-
-.x  xxxxxxxx  x.-
-..x          x..-
-...xx      xx...-
-.....xxxxxx.....-
+vx  xxxxxxxx  xv-
+.vx          xv.-
+..vxx      xxv..-
+....vxxxxxxv....-
 ................-
 """
 
 lid5 = """
 ................-
-......xxxx......-
-....xxyyyyxx....-
-..xxyyyyyyyyxx..-
-.xyyyyyyyyyyyyx.-
+.....vxxxxv.....-
+...vxxyyyyxxv...-
+.vxxyyyyyyyyxxv.-
+vxyyyyyyyyyyyyxv-
 xyyyyyyyyyyyyyyx-
-.xyyyyyyyyyyyyx.-
-..xyyyyyyyyyyx..-
-...xxyyyyyyxx...-
-.....xxxxxx.....-
+vxyyyyyyyyyyyyxv-
+.vxyyyyyyyyyyxv.-
+..vxxyyyyyyxxv..-
+....vxxxxxxv....-
 ................-
 """
 
@@ -159,6 +118,7 @@ cmap = {
     "w": [0xd8, 0xd8, 0xd8],
     "X": [0x80, 0x80, 0x80],
     "x": [0xea//2, 0xc0//2, 0x86//2],
+    "v": [0xea//6, 0xc0//6, 0x86//6],
     "y": [0xea, 0xc0, 0x86],
     "b": [0xff, 0xff, 0xff],
 }
