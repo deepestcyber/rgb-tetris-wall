@@ -1,3 +1,8 @@
+"""
+RGB-reel exploring the mandelbrot set.
+
+Displays a visualisation of the mandelbrot set and randomly zooms in on details.
+"""
 import numpy as np
 import matplotlib.colors
 import random
@@ -37,8 +42,18 @@ def single_val(i, m=1000):
         return [0, 0, 0]
 
 
-def draw(g):
+def draw(g_in):
+    """
+    Create image data from mandelbrot set values.
+    :param g_in:
+    :return:
+    """
     a = np.zeros((24, 16, 3), dtype=np.uint8)
+    # apply log to get more interesting colour distribution
+    g = np.log2(g_in)
+    # fix errors created by log (for 0 and 1)
+    g[g_in == 0] = 0
+    g[g_in == 1] = 0.0000000001
     m = g.max()
     for y in range(24):
         for x in range(16):
@@ -47,25 +62,33 @@ def draw(g):
 
 
 def zoom_pos(r1, r2, n3):
+    """
+    Find new zoom position.
+
+    Select a portion of the current zoomed position to zoom in further. Tries and find an interesting spot by always
+    selecting a position that is partially within the mandelbrot set (so a partly black part).
+    :param r1:
+    :param r2:
+    :param n3:
+    :return:
+    """
     nw = 4
     nh = 6
     tries = 0
     while True:
         nx = random.randint(0, 15 - nw)
         ny = random.randint(0, 23 - nh)
-        #sub = n3[nx:nx+nw, ny:ny+nh]
         sub = n3[ny:ny+nh, nx:nx+nw]
         in_set = np.sum(sub == 0)
         partial = in_set / (nw * nh)
         print("%02d:%02d,%02d:%02d: %f" % (nx,nx+nw,ny,ny+nw,partial))
         tries += 1
-        if 0.4 <= partial <= 0.6:
+        if 0.1 <= partial <= 0.6:
             print(nx, ny)
             print(sub)
             coords = [nx, ny, nx+nw, ny+nh]
             limits = [r1[ny], r1[ny+nh], r2[nx], r2[nx+nw]]
             return coords, limits
-
 
 
 fluter = Fluter()
@@ -91,13 +114,19 @@ while True:
     y2-=1
     x2-=1
     a[y1, x1:x2] = [255, 255, 255]
-    a[y2, x1:x2] = [255, 255, 255]
+    a[y2, x1:x2+1] = [255, 255, 255]
     a[y1:y2, x1] = [255, 255, 255]
     a[y1:y2, x2] = [255, 255, 255]
 
-    fluter.send_array(a)
-    time.sleep(1)
     minx, maxx, miny, maxy = limits
     zoom += 1
     maxiter = int(n3.max() * 2)
+    if maxiter < 50000:
+        fluter.send_array(a)
+        time.sleep(1)
+    else:
+        minx, maxx = -1.7, .7
+        miny, maxy = -1.0, 1.0
+        zoom = 1
+        maxiter = 100
 
