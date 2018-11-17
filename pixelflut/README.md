@@ -23,7 +23,7 @@ This mode is for the tetris wall and makes sure that the dimensions
 of the wall are respected.
 Start:
 
-	$ python pixelflut.py canvas_brain.py
+	$ python pixelflut.py spi_brain.py
 
 ## Quick test
 
