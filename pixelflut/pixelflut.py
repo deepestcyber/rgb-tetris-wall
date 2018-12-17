@@ -6,14 +6,7 @@ import time
 from gevent import spawn, sleep as gsleep, GreenletExit
 from gevent.socket import socket, SOL_SOCKET, SO_REUSEADDR
 from gevent.lock import Semaphore, RLock
-from gevent.queue import Queue
-from collections import deque
 import pygame
-import cairo
-import math
-import random
-import array
-import os
 import os.path
 
 import logging
