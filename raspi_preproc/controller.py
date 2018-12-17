@@ -1,21 +1,3 @@
-""" This is the terminal output:
-
-debug - waiting for SPI pi.read_bank_1: 536921599
-debug - requested mode received_data: 1 64 received_mode: 1 received_submode: 0
-debug - change: True new_mode: 1 new_submode: 0 prev_mode: 0 prev_submode: 0
-debug - new image: 0 last_image_t: 10002.64 wait_next_image_t: 500.00 (ms)
-debug - leds: (24, 16, 3)
-debug - sending bytes: 1152
-debug - arduino mode: 1 submode: 0 handshake_t: 9880.26 process_t: 2.29 send_t: 20.56 wait_t: 0.00 (ms)
-debug - waiting for SPI pi.read_bank_1: 536921599
-debug - requested mode received_data: 1 0 received_mode: 0 received_submode: 0
-debug - change: True new_mode: 0 new_submode: 0 prev_mode: 1 prev_submode: 0
-debug - Nothing to see here
-debug - arduino mode: 0 submode: 0 handshake_t: 56.98 process_t: 0.00 send_t: 0.26 wait_t: 42.76 (ms)
-debug - waiting for SPI pi.read_bank_1: 536921599
-
-"""
-
 import datetime
 import numpy as np
 import pigpio
@@ -76,15 +58,6 @@ def decodeByte2Mode(byte):
     # first two bits code the mode and remaining 6 bits code the submode
     return byte >> 6, byte & ~(3 << 6)
 
-# def request_mode_SPI():
-#     (num, byte) = pi.spi_xfer(spi, b'\x07')
-#     if num == 1:
-#         mode, submode = decodeByte2Mode(byte[0])
-#         if DEBUG_MODE:
-#             print("debug -", "requested mode", "received_data:", num, byte[0], "received_mode:", mode, "received_submode:", submode)
-#         return (mode, submode)
-#     return 0, 0
-
 def read_mode_SPI():
     (num, byte) = pi.spi_read(spi, 1)
     if num == 1:
@@ -128,6 +101,22 @@ while True:
 
             mode = new_mode
             submode[mode] = new_submode
+
+            if (mode == 4):  #mode for pixelflut
+
+                """ TODO documentation """
+
+                if DEBUG_MODE:
+                    timeproc = datetime.datetime.now()
+
+                #TODO calculate LEDS
+                leds = np.zeros((NUM_LEDS_H, NUM_LEDS_V, 3), dtype='uint8')
+
+                if DEBUG_MODE:
+                    timesend = datetime.datetime.now()
+                data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
+                send_SPI(data_enc)
+
 
             if (mode == 3):  #mode for stream from NES/video
 
