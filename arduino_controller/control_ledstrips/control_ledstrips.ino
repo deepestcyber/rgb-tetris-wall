@@ -341,10 +341,10 @@ void updateStatus() {
 //  status_leds[6] = CHSV(200/5*pspeed%200, 255, statusBrightness);
 
   //NeoPixel:
-  if (mode == 4) status_leds.setPixelColor(1, getNeoPixelWheel(206 & 255));
-  else if (mode == 3) status_leds.setPixelColor(1, getNeoPixelWheel(171 & 255));
-  else if (mode == 2) status_leds.setPixelColor(1, getNeoPixelWheel(85 & 255));
-  else if (mode == 1) status_leds.setPixelColor(1, getNeoPixelWheel(42 & 255));
+  if (mode == 4) status_leds.setPixelColor(1, getNeoPixelWheel(42 & 255));
+  else if (mode == 3) status_leds.setPixelColor(1, getNeoPixelWheel(85 & 255));
+  else if (mode == 2) status_leds.setPixelColor(1, getNeoPixelWheel(171 & 255));
+  else if (mode == 1) status_leds.setPixelColor(1, getNeoPixelWheel(206 & 255));
   else status_leds.setPixelColor(1, getNeoPixelWheel(0 & 255));
 
   status_leds.setPixelColor(3, getNeoPixelWheel((256/submodeMax[mode]*(submodeMax[mode]-submode[mode]-1)%256) & 255));
