@@ -35,3 +35,26 @@ Draw some lines:
 
 	$ for j in `seq 0 5 100`; do for i in {0..640}; do echo "px $i $j #AA0000"; echo "px $j $i #00AA00ff"; done; done | nc -q1 localhost 1234
 
+## Running on raspi
+
+On the raspi, we need to imitate a display, because the canvas/pygame is designed for a screen/gui instead of a simple pillow or numpy object
+
+Work-around: run a Xvnc server: Xvnc is an X server that runs without display
+but provides a VNC server that can get accessed like a display
+
+	$ apt-get install -y x11vnc xvfb
+
+	$ mkdir ~/.vnc
+
+	$ x11vnc -storepasswd 1234 ~/.vnc/passwd
+
+	$ x11vnc -forever -usepw -create
+
+## Integration in rgb-led-wall:
+
+The pixelflut api and is integrated with the spi_brain specification into the rgb-led wall
+Here, pixelflut is monitoring the SYNC_PIN from the arduino to check whether the arduino is ready for data.
+In this case, pixelflut is reading one byte, containing the mode/submode information the arduino is in,
+and in th following sends the data (byte array).
+The mode, submodes, brightness, and speed are controlled via the arduino.
+Speed controls the time between updates, and thus the ticks on five steps: 40ms, 200ms, 360ms, 640ms, 1000ms

@@ -1,8 +1,12 @@
 import logging
 import base64
+import os
 
+import pygame
 import pigpio
 
+
+DEBUG_MODE = False
 
 # GPIO pin numbers
 SYNC_PIN = 24
@@ -13,13 +17,13 @@ CANVAS_HEIGHT = 24
 log = logging.getLogger('brain')
 log.debug('lol')
 
-
 ticks = 0
 
+
 try:
+    pi.set_mode(SYNC_PIN, pigpio.INPUT)  # define pulldown/pullup
     pi = pigpio.pi()
     spi = pi.spi_open(0, 500000, 0)  # 243750 487500 975000 1950000
-    pi.set_mode(SYNC_PIN, pigpio.INPUT)  # define pulldown/pullup
 except:
     # Possibly the gpio daemon broke or we are not running on a pi.
     input('Continue?')
@@ -27,20 +31,38 @@ except:
     spi = None
 
 
-def send_canvas_over_spi(canvas):
-    global spi, array3d, pi
+def decodeByte2Mode(byte):
+    # first 3 bits code the mode and remaining 5 bits code the submode
+    return byte >> 5, byte & ~(7 << 5)
+
+
+def read_mode_SPI():
+    global spi
+    (num, byte) = pi.spi_read(spi, 1)
+    if num == 1:
+        mode, submode = decodeByte2Mode(byte[0])
+        if DEBUG_MODE:
+            print("debug -", "read mode", "received_data:", num, byte[0], "received_mode:", mode, "received_submode:", submode)
+        return (mode, submode)
+    return 0, 0
+
+
+def send_SPI(data):
+    global spi
+    if DEBUG_MODE:
+        print("debug -", "sending bytes:", len(data))
+    pi.spi_write(spi, data)
+
+
+def send_canvas_over_SPI(canvas):
+    global array3d, pi
     global CANVAS_WIDTH, CANVAS_HEIGHT
 
     leds = array3d(canvas.screen).astype('uint8')
     leds = leds[:CANVAS_WIDTH, :CANVAS_HEIGHT, :]
-    #leds = np.zeros((NUM_LEDS_H, NUM_LEDS_V, 3), dtype='uint8')
     data = leds.transpose(1, 0, 2).flatten().tobytes()
 
-    # just wait, until the sync pin is set
-    while ((pi.read_bank_1() >> SYNC_PIN) & 1) != 1:
-        pass
-
-    pi.spi_write(spi, data)
+    send_SPI(data)
 
 
 @on('LOAD')
@@ -50,7 +72,6 @@ def load(canvas):
     return # remove if canvas should be resized as well
 
     global CANVAS_WIDTH, CANVAS_HEIGHT
-    import pygame
     size = CANVAS_WIDTH, CANVAS_HEIGHT
     canvas.screen = pygame.display.set_mode(size, canvas.flags)
     canvas.width, canvas.height = size
@@ -72,11 +93,22 @@ def quit(canvas):
 def tick(canvas):
     global log
     global ticks
-    global send_canvas_over_spi
+    global send_canvas_over_SPI
     if ticks % 50 == 0:
         print('.')
 
-    send_canvas_over_spi(canvas)
+    # just wait, until the sync pin is set
+    while ((pi.read_bank_1() >> SYNC_PIN) & 1) != 1:
+        pass
+
+    if ((pi.read_bank_1() >> SYNC_PIN) & 1) == 1:
+
+        (mode, submode) = read_mode_SPI()
+
+        if (mode == 4):  #mode for pixelflut
+            send_canvas_over_SPI(canvas)
+        else:
+            os.exit(1)
 
     ticks += 1
 

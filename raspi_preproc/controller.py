@@ -3,10 +3,12 @@ import numpy as np
 import pigpio
 import time
 import sys
+import os
 from utils_ui import Logger
 from stream_nes import StreamNES
 from image_loader import ImageLoader
 from audio_beatdetection import AudioBeatdetection
+
 
 DEBUG_MODE = False
 
@@ -55,8 +57,8 @@ abeatd = AudioBeatdetection(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
 time.sleep(0.4)  # some needed initial delay
 
 def decodeByte2Mode(byte):
-    # first two bits code the mode and remaining 6 bits code the submode
-    return byte >> 6, byte & ~(3 << 6)
+    # first 3 bits code the mode and remaining 5 bits code the submode
+    return byte >> 5, byte & ~(7 << 5)
 
 def read_mode_SPI():
     (num, byte) = pi.spi_read(spi, 1)
@@ -65,6 +67,7 @@ def read_mode_SPI():
         if DEBUG_MODE:
             print("debug -", "read mode", "received_data:", num, byte[0], "received_mode:", mode, "received_submode:", submode)
         return (mode, submode)
+    return 0, 0
 
 def send_SPI(data):
     if DEBUG_MODE:
@@ -102,6 +105,7 @@ while True:
             mode = new_mode
             submode[mode] = new_submode
 
+
             if (mode == 4):  #mode for pixelflut
 
                 """ TODO documentation """
@@ -109,14 +113,15 @@ while True:
                 if DEBUG_MODE:
                     timeproc = datetime.datetime.now()
 
-                #TODO calculate LEDS
-                leds = np.zeros((NUM_LEDS_H, NUM_LEDS_V, 3), dtype='uint8')
+                #the following solution is a quick and dirty alpha to quickly and directly integrate the pixelflut api
+                #TODO: reimplement pixelflut as robust submodule
 
-                if DEBUG_MODE:
-                    timesend = datetime.datetime.now()
-                data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
-                send_SPI(data_enc)
-
+                # calls the pixelflut api with the spi_brain specification
+                # as a blocking call
+                # the pixelflut api will further check for the ode
+                # and kill itself, when the mode was changed again
+                os.system('python pixelflut.py spi_brain.py')
+                time.sleep(0.2)
 
             if (mode == 3):  #mode for stream from NES/video
 
@@ -240,4 +245,3 @@ time.sleep(0.2)
 pi.spi_close(spi)
 time.sleep(0.2)
 pi.stop()
-

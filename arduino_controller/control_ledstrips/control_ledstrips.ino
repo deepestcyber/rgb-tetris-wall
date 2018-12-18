@@ -263,8 +263,8 @@ ISR (SPI_STC_vect) {
 }
 
 byte encodeMode2Byte() {
-  // first two bits code the mode and remaining 6 bits code the submode
-  return ((mode << 6) | submode[mode]);
+  // first 3 bits code the mode and remaining 5 bits code the submode
+  return ((mode << 5) | submode[mode]);
 }
 
 void delayAwake(int time) {
@@ -557,27 +557,11 @@ void showPatterns() {
 
   elapsedTime = 0;
 
-  if (submode[0] == 63) {
+  if (submode[0] == 31) {
   }
-  else if (submode[0] == 62) {
-    // copy this check for creating a new pattern
+  else if (submode[0] == 30) {
+    // copy this check for creating a new pattern and update the submodeMax in line 71
   }
-//  else if (submode[0] == 11) {
-//    for (int i = 0; i < NUM_LEDS_H; i++) {
-//      for (int j = 0; j < NUM_LEDS_V; j++) {
-//      leds[i][NUM_LEDS_V - 1 - j] = CRGB(((brightness) * 60 + 3) % 256, ((brightness) * 60 + 3) % 256, ((brightness) * 60 + 3) % 256);
-//      }
-//    }
-//    waitingTime = 1000;
-//  }
-//  else if (submode[0] == 10) {
-//    for (int i = 0; i < NUM_LEDS_H; i++) {
-//      for (int j = 0; j < NUM_LEDS_V; j++) {
-//        leds[i][NUM_LEDS_V - 1 - j] = CHSV(rand() % 256, (pspeed * 64) % 256, (brightness * 64 - 1) % 256);
-//      }
-//    }
-//    waitingTime = 1000;
-//  }
   else if (submode[0] == 19) {
     state = blob(state, 12, 1, 230, 8);
     waitingTime = pspeed * pspeed * 250 + 8;
