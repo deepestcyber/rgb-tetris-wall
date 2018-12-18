@@ -123,7 +123,7 @@ while True:
                 os.system('python pixelflut.py spi_brain.py')
                 time.sleep(0.2)
 
-            if (mode == 3):  #mode for stream from NES/video
+            elif (mode == 3):  #mode for stream from NES/video
 
                 """ in the NES mode the new frame needs to get determined 
                     WHILE the arduino is writing the old frame to the leds
