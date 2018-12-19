@@ -47,9 +47,11 @@
 #define NUM_BUTTONS 8 // 8
 #define NUM_STATUS_LEDS 9 // 4
 #define BUTTON_WAIT 40 // time (ms) to wait for another buttoncheck
+#define WAITTIME_PSTREAM 40 // in ms for pixelflut stream -> 1 - 25 fps
 #define WAITTIME_VSTREAM 40 // in ms for NES video stream -> 25 fps
 #define WAITTIME_ASTREAM 40 // in ms for beat detection stream -> 25 fps
 #define WAITTIME_ISTREAM 100 // in ms for Image stream -> 10 fps
+#define TIMEOUT_PSTREAM 2000 // in ms for NES video stream
 #define TIMEOUT_VSTREAM 2000 // in ms for NES video stream
 #define TIMEOUT_ASTREAM 2000 // in ms for beat detection stream
 #define TIMEOUT_ISTREAM 10000 // in ms for Image stream
@@ -64,9 +66,9 @@ Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, STATUS_LEDS_P
 
 // modes: 0 = light patterns, 1 = image stream (24bit), 2 = music patterns, 3 = NES video stream
 uint8_t mode = 0;
-uint8_t modeMax = 4;
-uint8_t submode [4] = {2, 0, 0, 0};
-uint8_t submodeMax [4] = {20, 41, 4, 1}; // Used for all mode switches
+uint8_t modeMax = 5;
+uint8_t submode [5] = {2, 0, 0, 0, 0};
+uint8_t submodeMax [5] = {20, 41, 4, 1, 1}; // Used for all mode switches
 
 int photoRSTState = 0;      // photo resistor for regulating brightness
 float photoLeakeRate = 0.9; // for smoothing the photo resistor [0,1]
@@ -181,8 +183,15 @@ void setup() {
 
 void loop() {
 
+  // mode - pixelflut stream: up to 25 frames per second with 24 bit/px
+  if (mode == 4) {
+    waitingTime = WAITTIME_PSTREAM * (1+pspeed) * (1+pspeed) ;
+    loopsUntilTimeOut = TIMEOUT_PSTREAM/WAITTIME_PSTREAM;
+    showStream();
+  }
+
   // mode - video stream: up to 25 frames per second with 24 bit/px
-  if (mode == 3) {
+  else if (mode == 3) {
     waitingTime = WAITTIME_VSTREAM;
     loopsUntilTimeOut = TIMEOUT_VSTREAM/WAITTIME_VSTREAM;
     showStream();
@@ -254,8 +263,8 @@ ISR (SPI_STC_vect) {
 }
 
 byte encodeMode2Byte() {
-  // first two bits code the mode and remaining 6 bits code the submode
-  return ((mode << 6) | submode[mode]);
+  // first 3 bits code the mode and remaining 5 bits code the submode
+  return ((mode << 5) | submode[mode]);
 }
 
 void delayAwake(int time) {
@@ -332,9 +341,10 @@ void updateStatus() {
 //  status_leds[6] = CHSV(200/5*pspeed%200, 255, statusBrightness);
 
   //NeoPixel:
-  if (mode == 3) status_leds.setPixelColor(1, getNeoPixelWheel(42 & 255));
-  else if (mode == 2) status_leds.setPixelColor(1, getNeoPixelWheel(85 & 255));
-  else if (mode == 1) status_leds.setPixelColor(1, getNeoPixelWheel(171 & 255));
+  if (mode == 4) status_leds.setPixelColor(1, getNeoPixelWheel(42 & 255));
+  else if (mode == 3) status_leds.setPixelColor(1, getNeoPixelWheel(85 & 255));
+  else if (mode == 2) status_leds.setPixelColor(1, getNeoPixelWheel(171 & 255));
+  else if (mode == 1) status_leds.setPixelColor(1, getNeoPixelWheel(206 & 255));
   else status_leds.setPixelColor(1, getNeoPixelWheel(0 & 255));
 
   status_leds.setPixelColor(3, getNeoPixelWheel((256/submodeMax[mode]*(submodeMax[mode]-submode[mode]-1)%256) & 255));
@@ -547,27 +557,11 @@ void showPatterns() {
 
   elapsedTime = 0;
 
-  if (submode[0] == 63) {
+  if (submode[0] == 31) {
   }
-  else if (submode[0] == 62) {
-    // copy this check for creating a new pattern
+  else if (submode[0] == 30) {
+    // copy this check for creating a new pattern and update the submodeMax in line 71
   }
-//  else if (submode[0] == 11) {
-//    for (int i = 0; i < NUM_LEDS_H; i++) {
-//      for (int j = 0; j < NUM_LEDS_V; j++) {
-//      leds[i][NUM_LEDS_V - 1 - j] = CRGB(((brightness) * 60 + 3) % 256, ((brightness) * 60 + 3) % 256, ((brightness) * 60 + 3) % 256);
-//      }
-//    }
-//    waitingTime = 1000;
-//  }
-//  else if (submode[0] == 10) {
-//    for (int i = 0; i < NUM_LEDS_H; i++) {
-//      for (int j = 0; j < NUM_LEDS_V; j++) {
-//        leds[i][NUM_LEDS_V - 1 - j] = CHSV(rand() % 256, (pspeed * 64) % 256, (brightness * 64 - 1) % 256);
-//      }
-//    }
-//    waitingTime = 1000;
-//  }
   else if (submode[0] == 19) {
     state = blob(state, 12, 1, 230, 8);
     waitingTime = pspeed * pspeed * 250 + 8;
