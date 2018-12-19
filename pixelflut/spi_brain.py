@@ -21,8 +21,8 @@ ticks = 0
 
 
 try:
-    pi.set_mode(SYNC_PIN, pigpio.INPUT)  # define pulldown/pullup
     pi = pigpio.pi()
+    pi.set_mode(SYNC_PIN, pigpio.INPUT)  # define pulldown/pullup
     spi = pi.spi_open(0, 500000, 0)  # 243750 487500 975000 1950000
 except:
     # Possibly the gpio daemon broke or we are not running on a pi.
