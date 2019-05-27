@@ -133,6 +133,22 @@ class NesTetris:
 
 
     def test_tetris_runnig(self, img):
+        # if not self.test_pixel(img, 54, 59, is_white=False):
+        #     return False
+        # if not self.test_pixel(img, 197, 142, is_white=False):
+        #     return False
+        # if not self.test_pixel(img, 484, 350, is_white=False):
+        #     return False
+        # if not self.test_pixel(img, 536, 101, is_white=False):
+        #     return False
+        # if not  self.test_pixel(img, 546, 321, is_white=True):
+        #     return False
+        # if not self.test_pixel(img, 370, 53, is_white=True):
+        #     return False
+        # if not self.test_pixel(img, 67, 154, is_white=True):
+        #     return False
+        # if not self.test_pixel(img, 109, 387, is_white=True):
+        #     return False
         if not self.test_pixel(img, 54, 59, is_white=False):
             return False
         if not self.test_pixel(img, 197, 142, is_white=False):
@@ -141,11 +157,11 @@ class NesTetris:
             return False
         if not self.test_pixel(img, 536, 101, is_white=False):
             return False
-        if not  self.test_pixel(img, 546, 321, is_white=True):
+        if not  self.test_pixel(img, 567, 330, is_white=True):
             return False
-        if not self.test_pixel(img, 370, 53, is_white=True):
+        if not self.test_pixel(img, 370, 54, is_white=True):
             return False
-        if not self.test_pixel(img, 67, 154, is_white=True):
+        if not self.test_pixel(img, 67, 144, is_white=True):
             return False
         if not self.test_pixel(img, 109, 387, is_white=True):
             return False
@@ -169,9 +185,13 @@ class NesTetris:
         return True
 
 
-    def extract_game_area(self, im, area=None):
-        if area is None:
-            area = (41, 42, 41 + 642, 42 + 478)
+    def extract_game_area(self, im, area=None, ntsc=True):
+        if ntsc:
+            if area is None:
+                area = (43, 0, 43 + 642, 0 + 478)
+        else:
+            if area is None:
+                area = (41, 42, 41 + 642, 42 + 478)
         return im.crop(area)
 
 

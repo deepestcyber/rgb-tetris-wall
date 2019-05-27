@@ -49,7 +49,7 @@ mode = 0
 submode = [0 for n in range(256)]
 
 iloader = ImageLoader(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
-strmnes = StreamNES(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
+strmnes = StreamNES(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V, _ntsc=True)
 abeatd = AudioBeatdetection(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
 
 time.sleep(0.4)  # some needed initial delay
@@ -141,7 +141,16 @@ while True:
                 # calculate new frame:
                 if DEBUG_MODE:
                     timeproc = datetime.datetime.now()
+
+                #TODO: needs debugging!
+                # if is_modes_changed:
+                #     if submode[1] == 1:
+                #         strmnes = StreamNES(_ntsc=False)
+                #     else:
+                #         strmnes = StreamNES(_ntsc=True)
+
                 leds = strmnes.read_frame()
+
                 if DEBUG_MODE:
                     print("debug -", "leds:", leds.shape)
 
