@@ -2,8 +2,11 @@
 
 LED-based pixel wall for animations and tetris visualisation. Provides 16x24 RGB pixels on 80x120cm. LEDS are controlled with an Arduino, a Raspi provides input from arbitrary image or stream inputs including showing live Tetris games from NES input.
 
-|---|
+
 |![](photos/result.png)|
+|---|
+|Complete RGB-Tetris-LED-Wall|
+
 
 
 == Hardware: ==
