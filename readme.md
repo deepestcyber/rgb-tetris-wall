@@ -15,14 +15,14 @@ LED-based pixel wall for animations and tetris visualisation. Provides 16x24 RGB
 - Switches, Buttons, Photo-resistor,
 - Case made from HDF, with cells of size 5x5x5cm, top layer is Transparenzpapier + 3mm clear acrylic
 
-![](photos/cables.png)
-![](photos/casebuilding.png)
-![](photos/installed.png)
-![](photos/diffused.png)
+|![](photos/cables.png=960px)|![](photos/casebuilding.png=960px)|
+|---|---|
+|![](photos/installed.png=960px)|![](photos/diffused.png=960px)|
 
 == Software: ==
 
 = Arduino: =
+
 Purpose: direkt control of all LEDs via the FastLed library.
 - controlled via buttons: mode (animations, images, beat dedection, NES Tetris stream, pixelflut), submode (e.g. which animation), speed, brightness
 - adaptive brightness via a photo-resistor (with voltage divider via 5k1ohm resistor for input pulldown)
@@ -34,6 +34,7 @@ Libraries (C):
 - SPI
 
 = Raspberry PI =
+
 Purpose: Proprocessing streams of input images, beat detection, NES tetris streams, and pixelflut.
 - Image processing: cycles through all images that are located in /images
 - Beat detection: Microphone measures sound for simple beat detection that can get visualised
