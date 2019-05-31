@@ -1,4 +1,4 @@
-== Synopsis: ==
+## Synopsis: ==
 
 LED-based pixel wall for animations and tetris visualisation. Provides 16x24 RGB pixels on 80x120cm. LEDS are controlled with an Arduino, a Raspi provides input from arbitrary image or stream inputs including showing live Tetris games from NES input.
 
@@ -7,9 +7,7 @@ LED-based pixel wall for animations and tetris visualisation. Provides 16x24 RGB
 |---|
 |Complete RGB-Tetris-LED-Wall|
 
-
-
-== Hardware: ==
+## Hardware: ==
 
 - WS2811 5050 LED strips (60leds/m, 20ics/m)
 - 12V power supply (HP 750W HSTNS-PL18), provides 62.5A/12V
@@ -24,9 +22,9 @@ LED-based pixel wall for animations and tetris visualisation. Provides 16x24 RGB
 |---|---|
 |![](photos/installed.png)|![](photos/diffused.png)|
 
-== Software: ==
+## Software: ==
 
-= Arduino: =
+### Arduino: =
 
 Purpose: direkt control of all LEDs via the FastLed library.
 - controlled via buttons: mode (animations, images, beat dedection, NES Tetris stream, pixelflut), submode (e.g. which animation), speed, brightness
@@ -38,7 +36,7 @@ Libraries (C):
 - https://github.com/FastLED/FastLED
 - SPI
 
-= Raspberry PI =
+### Raspberry PI =
 
 Purpose: Proprocessing streams of input images, beat detection, NES tetris streams, and pixelflut.
 - Image processing: cycles through all images that are located in /images
