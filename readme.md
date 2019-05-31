@@ -15,9 +15,9 @@ LED-based pixel wall for animations and tetris visualisation. Provides 16x24 RGB
 - Switches, Buttons, Photo-resistor,
 - Case made from HDF, with cells of size 5x5x5cm, top layer is Transparenzpapier + 3mm clear acrylic
 
-|![](photos/cables.png =960x)|![](photos/casebuilding.png =960x)|
+|![](photos/cables.png)|![](photos/casebuilding.png)|
 |---|---|
-|![](photos/installed.png =960x)|![](photos/diffused.png =960x)|
+|![](photos/installed.png)|![](photos/diffused.png)|
 
 == Software: ==
 
