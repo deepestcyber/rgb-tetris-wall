@@ -22,6 +22,11 @@ LED-based pixel wall for animations and tetris visualisation. Provides 16x24 RGB
 |---|---|
 |![](photos/installed.png)|![](photos/diffused.png)|
 
+Energy supply:
+- worst case need: 0.02x24x16x9 = 69.12A
+- mostly organises via 4×2 molex connectors
+- 12 -> 5V converter for Arduino + Raspi + Controlleds (WS2812b)
+
 # Software:
 
 ## Arduino:
@@ -31,18 +36,27 @@ Purpose: direkt control of all LEDs via the FastLed library.
 - adaptive brightness via a photo-resistor (with voltage divider via 5k1ohm resistor for input pulldown)
 - annimations: library of 16+ animation patterns: rainbow, fire, plasma, ... 
 
+Communication with Raspi:
+- SPI, 487500 bps
+- Arduino sets sync_pin if ready for receiving data.
+
 Libraries (C):
 - https://playground.arduino.cc/Code/ElapsedMillis
 - https://github.com/FastLED/FastLED
 - SPI
 
-## Raspberry PI
+## Raspberry PI:
 
 Purpose: Proprocessing streams of input images, beat detection, NES tetris streams, and pixelflut.
 - Image processing: cycles through all images that are located in /images
 - Beat detection: Microphone measures sound for simple beat detection that can get visualised
 - NES Tetris stream: reads the composite signal of an NES via the Syntek STK1160 grabber. All frames are analysed for the content of the Tetris game: game state, next block, score, level, number of lines
 - Pixelflut (tm)
+
+NES Tetris stream:
+- NTSC or PAL possible
+- 12-15 fps feasible
+
 
 Libraries (python):
 - base64
