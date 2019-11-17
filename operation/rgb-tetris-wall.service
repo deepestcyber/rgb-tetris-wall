@@ -1,0 +1,9 @@
+[Unit]
+Description=RGB tetris wall
+
+[Service]
+Type=simple
+ExecStart=/home/pi/rgb-tetris-wall/run_preproc.sh
+
+[Install]
+WantedBy=multi-user.target
