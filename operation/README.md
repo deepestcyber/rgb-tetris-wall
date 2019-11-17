@@ -6,3 +6,9 @@ Enable the service and use `service` as you would normally
 
 	sudo systemctl enable rgb-tetris-wall
 	sudo service rgb-tetris-wall start
+
+Some shortcuts:
+
+	sudo service rgb-tetris-wall start
+	sudo service rgb-tetris-wall stop
+	sudo service rgb-tetris-wall restart
