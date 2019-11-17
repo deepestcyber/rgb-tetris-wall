@@ -35,10 +35,10 @@ def send_canvas_over_spi(canvas):
 
     log.debug('send_canvas_over_spi')
 
-    #leds = array3d(canvas.screen).astype('uint8')
-    #leds = leds[:CANVAS_WIDTH, :CANVAS_HEIGHT, :]
-    leds = np.random.uniform(0, 1, size=(16, 24, 3)) * 255
-    leds = leds.astype('uint8')
+    leds = array3d(canvas.screen).astype('uint8')
+    leds = leds[:CANVAS_WIDTH, :CANVAS_HEIGHT, :]
+    #leds = np.random.uniform(0, 1, size=(16, 24, 3)) * 255
+    #leds = leds.astype('uint8')
     data = leds.flatten().tobytes()
 
     # just wait, until the sync pin is set

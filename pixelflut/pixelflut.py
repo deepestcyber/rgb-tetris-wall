@@ -16,7 +16,7 @@ async = spawn
 
 
 class Client(object):
-    pps = 1000
+    pps = 384  #5760
 
     def __init__(self, canvas, addr):
         self.canvas = canvas
@@ -113,7 +113,7 @@ class Canvas(object):
             client.task = spawn(client.serve, sock)
 
     def _loop(self):
-        doptim = 1.0 / 30
+        doptim = 1.0 / 25
         flip = pygame.display.flip
         getevents = pygame.event.get
 
