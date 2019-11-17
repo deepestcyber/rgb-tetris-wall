@@ -2,7 +2,7 @@ import logging
 import base64
 
 import pigpio
-
+from pygame.surfarray import array3d
 
 # GPIO pin numbers
 SYNC_PIN = 24
@@ -29,16 +29,23 @@ except:
 
 def send_canvas_over_spi(canvas):
     global spi, array3d, pi
-    global CANVAS_WIDTH, CANVAS_HEIGHT
+    global CANVAS_WIDTH, CANVAS_HEIGHT, SYNC_PIN
+    global log
+    import numpy as np
 
-    leds = array3d(canvas.screen).astype('uint8')
-    leds = leds[:CANVAS_WIDTH, :CANVAS_HEIGHT, :]
-    #leds = np.zeros((NUM_LEDS_H, NUM_LEDS_V, 3), dtype='uint8')
-    data = leds.transpose(1, 0, 2).flatten().tobytes()
+    log.debug('send_canvas_over_spi')
+
+    #leds = array3d(canvas.screen).astype('uint8')
+    #leds = leds[:CANVAS_WIDTH, :CANVAS_HEIGHT, :]
+    leds = np.random.uniform(0, 1, size=(16, 24, 3)) * 255
+    leds = leds.astype('uint8')
+    data = leds.flatten().tobytes()
 
     # just wait, until the sync pin is set
     while ((pi.read_bank_1() >> SYNC_PIN) & 1) != 1:
         pass
+
+    (num, byte) = pi.spi_read(spi, 1)
 
     pi.spi_write(spi, data)
 
@@ -76,7 +83,8 @@ def tick(canvas):
     if ticks % 50 == 0:
         print('.')
 
-    send_canvas_over_spi(canvas)
+    # TODO: it would be best to have this here but it blocks everything :/
+    #send_canvas_over_spi(canvas)
 
     ticks += 1
 
@@ -96,6 +104,7 @@ def disconnect(canvas, client):
 @on('COMMAND-PX')
 def command_px(canvas, client, *args):
     global log
+    global send_canvas_over_spi
     log.debug('px command event %s %s', client, args)
     assert len(args) == 3
 
@@ -113,12 +122,14 @@ def command_px(canvas, client, *args):
     r, g, b, a = tuple(int(c[i:i+2], 16) for i in (0, 2, 4, 6))
 
     canvas.set_pixel(x, y, r, g, b, a)
+    send_canvas_over_spi(canvas)
     return True
 
 
 @on('COMMAND-WL')
 def command_wl(canvas, client, *args):
-    global log
+    global log, base64
+    global send_canvas_over_spi
     log.debug("wl command event %s %d args", client, len(args))
     w, h = canvas.size
     raw_size = w * h * canvas.depth
@@ -133,4 +144,5 @@ def command_wl(canvas, client, *args):
         for x in range(w):
             p = (y*w + x) * 3
             canvas.set_pixel(x, y, data[p], data[p+1], data[p+2], 0xff)
+    send_canvas_over_spi(canvas)
     return True

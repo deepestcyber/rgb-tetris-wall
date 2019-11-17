@@ -73,7 +73,7 @@ class Client(object):
 class Canvas(object):
     size = 16, 24
     depth = 3
-    pg_scale = 16
+    pg_scale = 1
     pg_size = (size[0] * pg_scale, size[1] * pg_scale)
     flags = pygame.RESIZABLE#|pygame.FULLSCREEN
 
