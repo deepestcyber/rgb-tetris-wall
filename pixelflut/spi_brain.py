@@ -84,7 +84,7 @@ def tick(canvas):
         print('.')
 
     # TODO: it would be best to have this here but it blocks everything :/
-    #send_canvas_over_spi(canvas)
+    send_canvas_over_spi(canvas)
 
     ticks += 1
 
@@ -122,7 +122,7 @@ def command_px(canvas, client, *args):
     r, g, b, a = tuple(int(c[i:i+2], 16) for i in (0, 2, 4, 6))
 
     canvas.set_pixel(x, y, r, g, b, a)
-    send_canvas_over_spi(canvas)
+    #send_canvas_over_spi(canvas)
     return True
 
 
@@ -144,5 +144,5 @@ def command_wl(canvas, client, *args):
         for x in range(w):
             p = (y*w + x) * 3
             canvas.set_pixel(x, y, data[p], data[p+1], data[p+2], 0xff)
-    send_canvas_over_spi(canvas)
+    #send_canvas_over_spi(canvas)
     return True
