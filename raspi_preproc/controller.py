@@ -7,7 +7,9 @@ import time
 import sys
 from utils_ui import Logger
 #import pixelflut.pixelflut as pixelflut
-from .. pixelflut import pixelflut
+import sys
+sys.path.append("..")
+import pixelflut
 from stream_nes import StreamNES
 from image_loader import ImageLoader
 from audio_beatdetection import AudioBeatdetection
