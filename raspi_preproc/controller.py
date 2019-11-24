@@ -6,8 +6,8 @@ from queue import Queue
 import time
 import sys
 from utils_ui import Logger
-import pixelflut.pixelflut as pixelflut
-import pixelflut.brain as pixelflut_brain
+#import pixelflut.pixelflut as pixelflut
+from .. pixelflut import pixelflut
 from stream_nes import StreamNES
 from image_loader import ImageLoader
 from audio_beatdetection import AudioBeatdetection
@@ -80,7 +80,7 @@ def send_SPI(data):
 
 pixelflut_queue = Queue()
 pixelflut_thread = Thread(target=pixelflut.threaded,
-                          args=(1, pixelflut_brain, pixelflut_queue))
+                          args=(pixelflut_queue,))
 pixelflut_thread.start()
 pixelflut_read = pixelflut_queue.get()
 
