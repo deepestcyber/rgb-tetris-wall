@@ -52,8 +52,9 @@ def send_canvas_over_spi(canvas):
         mode = byte[0] >> 6
         if mode != 4:
             print("mode=%d (not 4) terminating" % mode)
-            canvas.terminate()
-            return
+            if mode != 0:
+                canvas.terminate()
+                return
     pi.spi_write(spi, data)
 
 
