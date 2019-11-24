@@ -100,7 +100,7 @@ class Canvas(object):
         self.socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         self.socket.bind((host, port))
         self.socket.listen(100)
-        while True:
+        while self._running:
             sock, addr = self.socket.accept()
             ip, port = addr
 
@@ -234,8 +234,8 @@ class Canvas(object):
             y += linespace
 
     def terminate(self):
+        self._running = False
         self.fire("QUIT")
-        # self._running = False
 
 
 if __name__ == '__main__':
@@ -262,7 +262,7 @@ if __name__ == '__main__':
     with open(brainfile, 'r') as f:
         code = compile(f.read(), "somefile.py", 'exec')
 
-    while True:
+    while canvas._running:
         gsleep(1)
         if mtime < os.stat(brainfile).st_mtime:
             canvas.fire('UNLOAD')
