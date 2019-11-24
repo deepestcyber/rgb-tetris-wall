@@ -88,6 +88,7 @@ class Canvas(object):
         self.clients = {}
         self.events = {}
         self.font = pygame.font.Font(None, 17)
+        self._running = True
 
     def serve(self, host, port):
         self.host = host
@@ -117,7 +118,7 @@ class Canvas(object):
         flip = pygame.display.flip
         getevents = pygame.event.get
 
-        while True:
+        while self._running:
             t1 = time.time()
 
             for e in getevents():
@@ -232,6 +233,8 @@ class Canvas(object):
                 gsleep(delay)
             y += linespace
 
+    def terminate(self):
+        self._running = False
 
 
 if __name__ == '__main__':
