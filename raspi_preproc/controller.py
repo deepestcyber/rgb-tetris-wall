@@ -59,7 +59,7 @@ strmnes = StreamNES(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V, _ntsc=True)
 abeatd = AudioBeatdetection(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
 pixelflut_queue = Queue()
 pixelflut_thread = Thread(target=pixelflut.threaded,
-                          args=(pixelflut_queue,brainfile='pixelflut_brain.py'))
+                          args=(pixelflut_queue,'pixelflut_brain.py'))
 pixelflut_thread.start()
 pixelflut_read = pixelflut_queue.get(timeout=5)
 
@@ -168,19 +168,22 @@ while True:
                     print("debug -", "leds:", leds.shape)
 
 
-            if (mode == 2):  #mode for pixelflut
+            elif (mode == 2):  #mode for pixelflut
 
                 """ TODO documentation """
 
                 if DEBUG_MODE:
+                    timesend = datetime.datetime.now()
+
+                if not is_modes_changed:
+                    data_enc = leds.flatten().tobytes()
+                    #data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
+                    send_SPI(data_enc)
+
+                if DEBUG_MODE:
                     timeproc = datetime.datetime.now()
 
-                data_enc = pixelflut_read()
-                data_enc = leds.flatten().tobytes()
-                #data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
-                if DEBUG_MODE:
-                    timesend = datetime.datetime.now()
-                send_SPI(data_enc)
+                leds = pixelflut_read()
 
 
             elif (mode == 1):  # mode for stream of images

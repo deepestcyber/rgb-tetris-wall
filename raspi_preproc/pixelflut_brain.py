@@ -2,6 +2,7 @@ import logging
 log = logging.getLogger('brain')
 
 log.debug('lol')
+#print("pixelflut_brain.py started")
 
 ticks = 0
 
