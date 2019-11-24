@@ -285,7 +285,7 @@ def work(host, port, brainfile, *, queue=None):
 
 
 def threaded(queue):
-    work("0.0.0.0", 1234, "pixelflut/canvas_brain.py", queue=queue)
+    work("0.0.0.0", 1234, "../pixelflut/canvas_brain.py", queue=queue)
 
 
 if __name__ == '__main__':
