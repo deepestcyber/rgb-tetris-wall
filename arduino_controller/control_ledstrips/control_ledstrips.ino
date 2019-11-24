@@ -64,11 +64,11 @@ CRGB leds[NUM_LEDS_H][NUM_LEDS_V];
 //CRGB status_leds[NUM_STATUS_LEDS];
 Adafruit_NeoPixel status_leds = Adafruit_NeoPixel(NUM_STATUS_LEDS, STATUS_LEDS_PIN, NEO_GRB + NEO_KHZ800);
 
-// modes: 0 = light patterns, 1 = image stream (24bit), 2 = music patterns, 3 = NES video stream
+// modes: 0 = light patterns, 1 = image stream (24bit), 2 = pixelflut, 3 = NES video stream, 4 = music patterns
 uint8_t mode = 0;
 uint8_t modeMax = 5;
 uint8_t submode [5] = {2, 0, 0, 0, 0};
-uint8_t submodeMax [5] = {20, 41, 4, 1, 1}; // Used for all mode switches
+uint8_t submodeMax [5] = {20, 41, 1, 1, 4}; // Used for all mode switches
 
 int photoRSTState = 0;      // photo resistor for regulating brightness
 float photoLeakeRate = 0.9; // for smoothing the photo resistor [0,1]
@@ -183,11 +183,11 @@ void setup() {
 
 void loop() {
 
-  // mode - pixelflut stream: up to 25 frames per second with 24 bit/px
+  // mode - sound activation (hardcoded) - shows pattern accourding to a microphon signal
   if (mode == 4) {
-    waitingTime = WAITTIME_PSTREAM * (1+pspeed) * (1+pspeed) ;
-    loopsUntilTimeOut = TIMEOUT_PSTREAM/WAITTIME_PSTREAM;
-    showStream();
+    // TODO
+    elapsedTime = 0;
+    timedDelay(WAITTIME_ASTREAM);
   }
 
   // mode - video stream: up to 25 frames per second with 24 bit/px
@@ -197,11 +197,11 @@ void loop() {
     showStream();
   }
 
-  // mode - sound activation (hardcoded) - shows pattern accourding to a microphon signal
+  // mode - pixelflut stream: up to 25 frames per second with 24 bit/px
   else if (mode == 2) {
-    // TODO
-    elapsedTime = 0;
-    timedDelay(WAITTIME_ASTREAM);
+    waitingTime = WAITTIME_PSTREAM * (1+pspeed) * (1+pspeed) ;
+    loopsUntilTimeOut = TIMEOUT_PSTREAM/WAITTIME_PSTREAM;
+    showStream();
   }
 
   // mode - image stream: one frame with 24 bit/px (at max every 80ms)
