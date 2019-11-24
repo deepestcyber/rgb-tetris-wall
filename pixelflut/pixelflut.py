@@ -236,7 +236,10 @@ class Canvas(object):
     def terminate(self):
         self._running = False
         self.fire("QUIT")
-        killall()
+        import gc
+        import gevent
+        from greenlet import greenlet
+        gevent.killall([obj for obj in gc.get_objects() if isinstance(obj, greenlet)])
 
 
 if __name__ == '__main__':
