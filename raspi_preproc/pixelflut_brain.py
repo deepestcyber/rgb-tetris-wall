@@ -1,33 +1,9 @@
 import logging
-import base64
-
-from pygame.surfarray import array3d
-
-#   DISPLAY=:0.0 python pixelflut.py spi_brain.py
-
-# GPIO pin numbers
-# canvas parameters
-CANVAS_WIDTH = 16
-CANVAS_HEIGHT = 24
-
 log = logging.getLogger('brain')
+
 log.debug('lol')
 
-
 ticks = 0
-
-
-@on('LOAD')
-def load(canvas):
-    log.debug('load event')
-
-    return # remove if canvas should be resized as well
-
-    global CANVAS_WIDTH, CANVAS_HEIGHT
-    import pygame
-    size = CANVAS_WIDTH, CANVAS_HEIGHT
-    canvas.screen = pygame.display.set_mode(size, canvas.flags)
-    canvas.width, canvas.height = size
 
 
 @on('RESIZE')
@@ -46,10 +22,8 @@ def quit(canvas):
 def tick(canvas):
     global log
     global ticks
-    global send_canvas_over_spi
-    if ticks % 25 == 0:
+    if ticks % 50 == 0:
         print('.')
-
     ticks += 1
 
 
@@ -68,7 +42,6 @@ def disconnect(canvas, client):
 @on('COMMAND-PX')
 def command_px(canvas, client, *args):
     global log
-    global send_canvas_over_spi
     log.debug('px command event %s %s', client, args)
     assert len(args) == 3
 
@@ -91,8 +64,8 @@ def command_px(canvas, client, *args):
 
 @on('COMMAND-WL')
 def command_wl(canvas, client, *args):
-    global log, base64
-    global send_canvas_over_spi
+    import base64
+    global log
     log.debug("wl command event %s %d args", client, len(args))
     w, h = canvas.size
     raw_size = w * h * canvas.depth
@@ -101,7 +74,7 @@ def command_wl(canvas, client, *args):
     base = args[0]
     assert len(base) == b64_size
     data = base64.b64decode(base)
-    assert len(data) == raw_size
+    assert len(data) == w * h * canvas.depth
 
     for y in range(h):
         for x in range(w):

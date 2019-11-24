@@ -264,7 +264,7 @@ ISR (SPI_STC_vect) {
 
 byte encodeMode2Byte() {
   // first two bits code the mode and remaining 6 bits code the submode
-  return ((mode << 6) | submode[mode]);
+  return (((mode - 1) << 6) | submode[mode]);
 }
 
 void delayAwake(int time) {
