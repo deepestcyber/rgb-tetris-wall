@@ -234,7 +234,8 @@ class Canvas(object):
             y += linespace
 
     def terminate(self):
-        self._running = False
+        self.fire("QUIT")
+        # self._running = False
 
 
 if __name__ == '__main__':
