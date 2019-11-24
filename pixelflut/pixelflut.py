@@ -3,7 +3,7 @@
 __version__ = '0.6'
 
 import time
-from gevent import spawn, sleep as gsleep, GreenletExit
+from gevent import spawn, sleep as gsleep, GreenletExit, killall
 from gevent.socket import socket, SOL_SOCKET, SO_REUSEADDR
 from gevent.lock import Semaphore, RLock
 import pygame
@@ -236,6 +236,7 @@ class Canvas(object):
     def terminate(self):
         self._running = False
         self.fire("QUIT")
+        killall()
 
 
 if __name__ == '__main__':
