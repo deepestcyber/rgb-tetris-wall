@@ -27,10 +27,6 @@ except:
     spi = None
 
 
-def decodeByte2Mode(byte):
-    # first two bits code the mode and remaining 6 bits code the submode
-    return byte >> 6, byte & ~(3 << 6)
-
 
 def send_canvas_over_spi(canvas):
     global spi, array3d, pi
@@ -52,7 +48,8 @@ def send_canvas_over_spi(canvas):
 
     (num, byte) = pi.spi_read(spi, 1)
     if num == 1:
-        mode, submode = decodeByte2Mode(byte[0])
+        # decode mode
+        mode = num >> 6
         if mode != 4:
             print("mode!=4 terminating")
         canvas.terminate()
