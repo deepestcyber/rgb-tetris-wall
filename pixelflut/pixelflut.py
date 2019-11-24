@@ -232,9 +232,14 @@ class Canvas(object):
                 gsleep(delay)
             y += linespace
 
+    def serialize(self):
+        leds = pygame.array3d(self.screen).astype('uint8')
+        leds = leds[:self.size[0], :self.size[1], :]
+        data = leds.flatten().tobytes()
+        return data
 
 
-if __name__ == '__main__':
+def main():
     logging.basicConfig(level=logging.DEBUG)
 
     import optparse
@@ -249,10 +254,15 @@ if __name__ == '__main__':
     if len(args) != 1:
         parser.error("incorrect number of arguments")
 
-    canvas = Canvas()
-    task = spawn(canvas.serve, options.hostname, options.portnum)
+    work(options.hostname, options.port, args[0])
 
-    brainfile = args[0]
+
+def work(host, port, brainfile, *, queue=None):
+    canvas = Canvas()
+    task = spawn(canvas.serve, host, port)
+    if queue is not None:
+        queue.put(canvas.serialize)
+
     mtime = 0
 
     with open(brainfile, 'r') as f:
@@ -273,3 +283,10 @@ if __name__ == '__main__':
 
     task.join()
 
+
+def threaded(queue):
+    work("0.0.0.0", 1234, "pixelflut/canvas_brain.py", queue=queue)
+
+
+if __name__ == '__main__':
+    main()

@@ -77,6 +77,13 @@ def send_SPI(data):
         print("debug -", "sending bytes:", len(data))
     pi.spi_write(spi, data)
 
+
+pixelflut_queue = Queue()
+pixelflut_thread = Thread(target=pixelflut.threaded,
+                          args=(1, pixelflut_brain, pixelflut_queue))
+pixelflut_thread.start()
+pixelflut_read = pixelflut_queue.get()
+
 while True:
     try:
         timestart = datetime.datetime.now()
@@ -115,29 +122,30 @@ while True:
                 if DEBUG_MODE:
                     timeproc = datetime.datetime.now()
 
-                if not is_modes_changed:
-                    #TODO read out the cancas (sockets?)
-                    if pixelflut_queue is not None:
-                        leds = pixelflut_queue.get()
-                    else:
-                        leds = np.zeros((NUM_LEDS_H, NUM_LEDS_V, 3), dtype='uint8')
-                else:
-                    #TODO start
-                    pixelflut_queue = Queue()
-                    pixelflut_thread = Thread(target=pixelflut.work,
-                                              args=(1, pixelflut_brain, pixelflut_queue))
-                    pixelflut_thread.start()
-
+                data_enc = pixelflut_read()
+#                if not is_modes_changed:
+#                    #TODO read out the cancas (sockets?)
+#                    if pixelflut_queue is not None:
+#                        leds = pixelflut_queue.get()
+#                    else:
+#                        leds = np.zeros((NUM_LEDS_H, NUM_LEDS_V, 3), dtype='uint8')
+#                else:
+#                    #TODO start
+#                    pixelflut_queue = Queue()
+#                    pixelflut_thread = Thread(target=pixelflut.work,
+#                                              args=(1, pixelflut_brain, pixelflut_queue))
+#                    pixelflut_thread.start()
+#
                 if DEBUG_MODE:
                     timesend = datetime.datetime.now()
-                data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
+#                data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
                 send_SPI(data_enc)
-            else:
-                # not in pixelflut, thus stop the thread, if still running
-                if pixelflut_thread is not None:
-                    # TODO kill the pixelflut_thread
-                    pixelflut_thread = None
-                    pixelflut_queue = None
+            #else:
+            #    # not in pixelflut, thus stop the thread, if still running
+            #    if pixelflut_thread is not None:
+            #        # TODO kill the pixelflut_thread
+            #        pixelflut_thread = None
+            #        pixelflut_queue = None
 
 
             if (mode == 3):  #mode for stream from NES/video
