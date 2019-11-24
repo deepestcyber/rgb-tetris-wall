@@ -2,5 +2,4 @@
 
 cd /home/pi/rgb-tetris-wall/raspi_preproc/
 . /home/pi/env/bin/activate
-export DISPLAY=:0.0
-python3 controller.py
+DISPLAY=:0.0 python3 controller.py
