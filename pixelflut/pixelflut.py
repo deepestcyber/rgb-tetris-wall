@@ -3,7 +3,7 @@
 __version__ = '0.6'
 
 import time
-from gevent import spawn, sleep as gsleep, GreenletExit, killall
+from gevent import spawn, sleep as gsleep, GreenletExit
 from gevent.socket import socket, SOL_SOCKET, SO_REUSEADDR
 from gevent.lock import Semaphore, RLock
 import pygame
@@ -88,7 +88,6 @@ class Canvas(object):
         self.clients = {}
         self.events = {}
         self.font = pygame.font.Font(None, 17)
-        self._running = True
 
     def serve(self, host, port):
         self.host = host
@@ -100,7 +99,7 @@ class Canvas(object):
         self.socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         self.socket.bind((host, port))
         self.socket.listen(100)
-        while self._running:
+        while True:
             sock, addr = self.socket.accept()
             ip, port = addr
 
@@ -118,7 +117,7 @@ class Canvas(object):
         flip = pygame.display.flip
         getevents = pygame.event.get
 
-        while self._running:
+        while True:
             t1 = time.time()
 
             for e in getevents():
@@ -233,13 +232,6 @@ class Canvas(object):
                 gsleep(delay)
             y += linespace
 
-    def terminate(self):
-        self._running = False
-        self.fire("QUIT")
-        import gc
-        import gevent
-        from greenlet import greenlet
-        gevent.killall([obj for obj in gc.get_objects() if isinstance(obj, greenlet)])
 
 
 if __name__ == '__main__':
@@ -266,7 +258,7 @@ if __name__ == '__main__':
     with open(brainfile, 'r') as f:
         code = compile(f.read(), "somefile.py", 'exec')
 
-    while canvas._running:
+    while True:
         gsleep(1)
         if mtime < os.stat(brainfile).st_mtime:
             canvas.fire('UNLOAD')

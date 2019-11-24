@@ -27,7 +27,6 @@ except:
     spi = None
 
 
-
 def send_canvas_over_spi(canvas):
     global spi, array3d, pi
     global CANVAS_WIDTH, CANVAS_HEIGHT, SYNC_PIN
@@ -47,14 +46,7 @@ def send_canvas_over_spi(canvas):
         pass
 
     (num, byte) = pi.spi_read(spi, 1)
-    if num == 1:
-        # decode mode
-        mode = byte[0] >> 6
-        if mode != 4:
-            print("mode=%d (not 4) terminating" % mode)
-            if mode != 0:
-                canvas.terminate()
-                return
+
     pi.spi_write(spi, data)
 
 
