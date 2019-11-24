@@ -84,7 +84,7 @@ pixelflut_queue = Queue()
 pixelflut_thread = Thread(target=pixelflut.threaded,
                           args=(pixelflut_queue,))
 pixelflut_thread.start()
-pixelflut_read = pixelflut_queue.get()
+pixelflut_read = pixelflut_queue.get(timeout=5)
 
 while True:
     try:
