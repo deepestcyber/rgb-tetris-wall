@@ -117,7 +117,7 @@ while True:
             mode = new_mode
             submode[mode] = new_submode
 
-            if (mode == 4):  #mode for pixelflut
+            if (mode == 2):  #mode for pixelflut
 
                 """ TODO documentation """
 
@@ -187,7 +187,7 @@ while True:
                     print("debug -", "leds:", leds.shape)
 
 
-            elif (mode == 2):  # mode for stream of beat-patterns
+            elif (mode == -1):  # mode for stream of beat-patterns
 
                 if DEBUG_MODE:
                     timeproc = datetime.datetime.now()
