@@ -100,6 +100,9 @@ while True:
         while ((pi.read_bank_1() >> SYNC_PIN) & 1) != 1:
             pass  # just wait, until the sync pin is set
 
+        if DEBUG_MODE:
+            print("debug - got SPI")
+
         if ((pi.read_bank_1() >> SYNC_PIN) & 1) == 1:
 
             #(new_mode, new_submode) = request_mode_SPI()
