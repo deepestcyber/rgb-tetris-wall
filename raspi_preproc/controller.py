@@ -14,7 +14,7 @@ from stream_nes import StreamNES
 from image_loader import ImageLoader
 from audio_beatdetection import AudioBeatdetection
 
-DEBUG_MODE = False
+DEBUG_MODE = True
 
 exptime = datetime.datetime.now()
 log_out_file = "logs/log_" + exptime.strftime("%y%m%d%H%M") + ".txt"
@@ -84,7 +84,9 @@ pixelflut_queue = Queue()
 pixelflut_thread = Thread(target=pixelflut.threaded,
                           args=(pixelflut_queue,))
 pixelflut_thread.start()
+print("fetching pf updater")
 pixelflut_read = pixelflut_queue.get(timeout=5)
+print("got pf updater")
 
 while True:
     try:
