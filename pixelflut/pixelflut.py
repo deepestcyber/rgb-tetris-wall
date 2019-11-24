@@ -8,6 +8,7 @@ from gevent.socket import socket, SOL_SOCKET, SO_REUSEADDR
 from gevent.lock import Semaphore, RLock
 import pygame
 import os.path
+from pygame.surfarray import array3d
 
 import logging
 log = logging.getLogger('pixelflut')
@@ -233,7 +234,7 @@ class Canvas(object):
             y += linespace
 
     def serialize(self):
-        leds = pygame.array3d(self.screen).astype('uint8')
+        leds = array3d(self.screen).astype('uint8')
         leds = leds[:self.size[0], :self.size[1], :]
         data = leds.flatten().tobytes()
         return data
