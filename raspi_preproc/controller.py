@@ -1,9 +1,11 @@
 import datetime
 import numpy as np
 import pigpio
+import threading
 import time
 import sys
 from utils_ui import Logger
+import pixelflut.pixelflut, pixelflut.brain
 from stream_nes import StreamNES
 from image_loader import ImageLoader
 from audio_beatdetection import AudioBeatdetection
@@ -30,6 +32,7 @@ POLL_GRACE_PERIOD = 0.001  # mainly for debug.
 threshold_until_next_image = 10  # change the random image every 10th time.
 #time_last_istream_change = datetime.datetime.now()
 next_image_counter = threshold_until_next_image
+pixelflut_thread=None
 
 b64dict = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
@@ -109,13 +112,23 @@ while True:
                 if DEBUG_MODE:
                     timeproc = datetime.datetime.now()
 
-                #TODO calculate LEDS
-                leds = np.zeros((NUM_LEDS_H, NUM_LEDS_V, 3), dtype='uint8')
+                if not is_modes_changed:
+                    #TODO read out the cancas (sockets?)
+                    leds = np.zeros((NUM_LEDS_H, NUM_LEDS_V, 3), dtype='uint8')
+                else:
+                    #TODO start
+                    pixelflut_thread = threading.Thread(target=pixelflut.work, args=(1,))
+                    pixelflut_thread.start()
 
                 if DEBUG_MODE:
                     timesend = datetime.datetime.now()
                 data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
                 send_SPI(data_enc)
+            else:
+                # not in pixelflut, thus stop the thread, if still running
+                if pixelflut_thread is not None:
+                    # TODO kill the pixelflut_thread
+                    pixelflut_thread = None
 
 
             if (mode == 3):  #mode for stream from NES/video
