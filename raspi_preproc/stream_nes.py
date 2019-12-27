@@ -17,15 +17,27 @@ overall costs: 40-52 ms
 """
 
 class StreamNES:
+    # -s, --set - standard = < num >
+    # pal or pal - X(X=B / G / H / N / Nc / I / D / K / M / 60)(V4L2_STD_PAL)
+    # ntsc or ntsc - X(X=M / J / K)(V4L2_STD_NTSC)
+    # secam or secam - X(X=B / G / H / D / K / L / Lc)(V4L2_STD_SECAM)
 
-    def __init__(self, _num_leds_h=16, _num_leds_v=24, feedback=False):
+    def __init__(self, _num_leds_h=16, _num_leds_v=24, _ntsc=True, feedback=False):
         self.num_leds_h = _num_leds_h
         self.num_leds_v = _num_leds_v
+        self.ntsc = _ntsc
         self.leds = np.zeros((_num_leds_v, _num_leds_h, 3)) #should be not necessary
         self.b64dict = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-        self.mode = 'PAL-B'
-        self.width = 720
-        self.height = 576
+        if self.ntsc:
+            self.mode = 'NTSC'
+            self.fps = 30
+            self.width = 720
+            self.height = 480
+        else:
+            self.mode = 'PAL-B'
+            self.fps = 25
+            self.width = 720
+            self.height = 576
         self.format = 'UYVY'
         self.b = 3  # 3 2
         #self.color = '' #''smpte170'
@@ -43,8 +55,9 @@ class StreamNES:
 
         #-p 25
         os.system(
-        'v4l2-ctl -d {device} -p 25 -s {m} --set-fmt-video width={w},height={h},pixelformat={pf} --{fb}'.format(
-            device=self.device, m=self.mode, w=self.w, h=self.h, pf=self.format, fb=fb))
+        'v4l2-ctl -d {device} -s {m} --set-fmt-video width={w},height={h},pixelformat={pf} --{fb}'.format(
+        #'v4l2-ctl -d {device} -p {fps} -s {m} --set-fmt-video width={w},height={h},pixelformat={pf} --{fb}'.format(
+                device=self.device, fps=self.fps, m=self.mode, w=self.w, h=self.h, pf=self.format, fb=fb))
         #self.frame = Frame(self.device)
         self.frame = Camera(self.device)
 
@@ -77,7 +90,7 @@ class StreamNES:
 
         #cut the frame to game size (depending on game) ane transform it for the leds
         #img_game = self.game.extract_game_area(img).filter(ImageFilter.SMOOTH).convert("HSV")
-        img_game = self.game.extract_game_area(img)
+        img_game = self.game.extract_game_area(img, ntsc=self.ntsc)
         img_leds = self.game.transform_frame(img_game)
         #img to array conversion
         self.leds = np.array(img_leds)
@@ -91,6 +104,9 @@ class StreamNES:
 
 
     # for debug:
+    def read_frame0(self):
+        frame_data = self.frame.get_frame()
+        return frame_data
     def read_frame1(self):
         #frame_data = self.frame.get_frame()
         while True:
@@ -107,7 +123,7 @@ class StreamNES:
         return img
     def read_frame3(self, img):
         #img_game = self.game.extract_game_area(img).filter(ImageFilter.SMOOTH).convert("HSV")
-        img_game = self.game.extract_game_area(img)
+        img_game = self.game.extract_game_area(img, ntsc=self.ntsc)
         return img_game
     def read_frame4(self, img_game):
         img_leds = self.game.transform_frame(img_game)
@@ -151,30 +167,39 @@ def send_visdom(vis, im, win=None, env=None, opts=None):
 if __name__ == "__main__":
     iterations = 250
     is_visdom = False
-    # command line:$ pyton3 -m visdom.server
-    WAITTIME_VSTREAM = 0.040  # 40 ms
+    # command line:$ python3 -m visdom.server
+    WAITTIME_VSTREAM = 1.0  #0.040  # 40 ms
+    print("Start StreamNES...")
     stream = StreamNES(feedback=True)
 
     visd_server = 'http://localhost'
     if is_visdom:
         vis = visdom.Visdom(server=visd_server)
 
+    print("Start reading frames...")
     for i in range(iterations):
         timestart = datetime.datetime.now()
 
+        print("read frame...")
+
         #stream.read_frame()
+        #print("...done")
 
         a = stream.read_frame1()
+        print("...done1")
         timestart_a = datetime.datetime.now()
         b = stream.read_frame2(a)
+        print("...done2")
         timestart_b = datetime.datetime.now()
         c = stream.read_frame3(b)
+        print("...done3")
         timestart_c = datetime.datetime.now()
         d = stream.read_frame4(c)
+        print("...done4")
 
         timefin = datetime.datetime.now()
-        #c.convert("RGB").save("nes_cut.png", "PNG")
-        #d.convert("RGB").save("leds.png", "PNG")
+        c.convert("RGB").save("nes_cut.png", "PNG")
+        d.convert("RGB").save("leds.png", "PNG")
         if is_visdom:
             send_visdom(vis, c.convert('RGBA'), win='source')
             send_visdom(vis, d.resize((160,240)).convert('RGBA'), win='led-pixel-wall')

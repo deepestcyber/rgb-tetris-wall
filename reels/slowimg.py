@@ -40,4 +40,4 @@ while True:
     fn = get_random_file("../images")
     print("sending image '{}'".format(fn))
     send(Image.open(fn))
-    #time.sleep(1)
+    time.sleep(1)

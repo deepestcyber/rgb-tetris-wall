@@ -6,15 +6,9 @@ import time
 from gevent import spawn, sleep as gsleep, GreenletExit
 from gevent.socket import socket, SOL_SOCKET, SO_REUSEADDR
 from gevent.lock import Semaphore, RLock
-from gevent.queue import Queue
-from collections import deque
 import pygame
-import cairo
-import math
-import random
-import array
-import os
 import os.path
+from pygame.surfarray import array3d
 
 import logging
 log = logging.getLogger('pixelflut')
@@ -23,7 +17,7 @@ async = spawn
 
 
 class Client(object):
-    pps = 1000
+    pps = 384  #5760
 
     def __init__(self, canvas, addr):
         self.canvas = canvas
@@ -80,7 +74,7 @@ class Client(object):
 class Canvas(object):
     size = 16, 24
     depth = 3
-    pg_scale = 16
+    pg_scale = 1
     pg_size = (size[0] * pg_scale, size[1] * pg_scale)
     flags = pygame.RESIZABLE#|pygame.FULLSCREEN
 
@@ -120,7 +114,7 @@ class Canvas(object):
             client.task = spawn(client.serve, sock)
 
     def _loop(self):
-        doptim = 1.0 / 30
+        doptim = 1.0 / 25
         flip = pygame.display.flip
         getevents = pygame.event.get
 
@@ -239,9 +233,14 @@ class Canvas(object):
                 gsleep(delay)
             y += linespace
 
+    def serialize(self):
+        leds = array3d(self.screen).astype('uint8')
+        leds = leds[:self.size[0], :self.size[1], :]
+        data = leds.flatten().tobytes()
+        return data
 
 
-if __name__ == '__main__':
+def main():
     logging.basicConfig(level=logging.DEBUG)
 
     import optparse
@@ -256,10 +255,15 @@ if __name__ == '__main__':
     if len(args) != 1:
         parser.error("incorrect number of arguments")
 
-    canvas = Canvas()
-    task = spawn(canvas.serve, options.hostname, options.portnum)
+    work(options.hostname, options.port, args[0])
 
-    brainfile = args[0]
+
+def work(host, port, brainfile, *, queue=None):
+    canvas = Canvas()
+    task = spawn(canvas.serve, host, port)
+    if queue is not None:
+        queue.put(canvas.serialize)
+
     mtime = 0
 
     with open(brainfile, 'r') as f:
@@ -280,3 +284,10 @@ if __name__ == '__main__':
 
     task.join()
 
+
+def threaded(queue):
+    work("0.0.0.0", 1234, "../pixelflut/canvas_brain.py", queue=queue)
+
+
+if __name__ == '__main__':
+    main()
