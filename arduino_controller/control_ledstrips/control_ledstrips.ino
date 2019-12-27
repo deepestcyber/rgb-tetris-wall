@@ -47,7 +47,7 @@
 #define NUM_BUTTONS 8 // 8
 #define NUM_STATUS_LEDS 9 // 4
 #define BUTTON_WAIT 40 // time (ms) to wait for another buttoncheck
-#define WAITTIME_PSTREAM 40 // in ms for pixelflut stream -> 1 - 25 fps
+#define WAITTIME_PSTREAM 20 // in ms for pixelflut stream -> 1 - 50 fps
 #define WAITTIME_VSTREAM 40 // in ms for NES video stream -> 25 fps
 #define WAITTIME_ASTREAM 40 // in ms for beat detection stream -> 25 fps
 #define WAITTIME_ISTREAM 100 // in ms for Image stream -> 10 fps
@@ -185,9 +185,10 @@ void loop() {
 
   // mode - sound activation (hardcoded) - shows pattern accourding to a microphon signal
   if (mode == 4) {
-    // TODO
-    elapsedTime = 0;
-    timedDelay(WAITTIME_ASTREAM);
+    waitingTime = WAITTIME_ASTREAM * (1+pspeed) * (1+pspeed) ;
+    loopsUntilTimeOut = TIMEOUT_ASTREAM/WAITTIME_ASTREAM;
+    showStream();
+    
   }
 
   // mode - video stream: up to 25 frames per second with 24 bit/px
@@ -264,7 +265,7 @@ ISR (SPI_STC_vect) {
 
 byte encodeMode2Byte() {
   // first two bits code the mode and remaining 6 bits code the submode
-  return ((mode << 6) | submode[mode]);
+  return (((mode - 1) << 6) | submode[mode]);
 }
 
 void delayAwake(int time) {

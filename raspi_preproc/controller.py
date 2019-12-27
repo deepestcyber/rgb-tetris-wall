@@ -6,10 +6,10 @@ from queue import Queue
 import time
 import sys
 from utils_ui import Logger
-#import pixelflut.pixelflut as pixelflut
-import sys
-sys.path.append("..")
-from pixelflut import pixelflut
+import stream_pixelflut as pixelflut
+#import sys
+#sys.path.append("..")
+#from pixelflut import pixelflut
 from stream_nes import StreamNES
 from image_loader import ImageLoader
 from audio_beatdetection import AudioBeatdetection
@@ -36,8 +36,6 @@ POLL_GRACE_PERIOD = 0.001  # mainly for debug.
 threshold_until_next_image = 10  # change the random image every 10th time.
 #time_last_istream_change = datetime.datetime.now()
 next_image_counter = threshold_until_next_image
-pixelflut_thread = None
-pixelflut_queue = None
 
 b64dict = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
@@ -59,12 +57,17 @@ submode = [0 for n in range(256)]
 iloader = ImageLoader(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
 strmnes = StreamNES(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V, _ntsc=True)
 abeatd = AudioBeatdetection(_num_leds_h=NUM_LEDS_H, _num_leds_v=NUM_LEDS_V)
+pixelflut_queue = Queue()
+pixelflut_thread = Thread(target=pixelflut.threaded,
+                          args=(pixelflut_queue,'pixelflut_brain.py'))
+pixelflut_thread.start()
+pixelflut_read = pixelflut_queue.get(timeout=5)
 
 time.sleep(0.4)  # some needed initial delay
 
 def decodeByte2Mode(byte):
     # first two bits code the mode and remaining 6 bits code the submode
-    return byte >> 6, byte & ~(3 << 6)
+    return (byte >> 6) + 1, byte & ~(3 << 6)
 
 def read_mode_SPI():
     (num, byte) = pi.spi_read(spi, 1)
@@ -78,15 +81,6 @@ def send_SPI(data):
     if DEBUG_MODE:
         print("debug -", "sending bytes:", len(data))
     pi.spi_write(spi, data)
-
-
-pixelflut_queue = Queue()
-pixelflut_thread = Thread(target=pixelflut.threaded,
-                          args=(pixelflut_queue,))
-pixelflut_thread.start()
-print("fetching pf updater")
-pixelflut_read = pixelflut_queue.get(timeout=5)
-print("got pf updater")
 
 while True:
     try:
@@ -122,40 +116,22 @@ while True:
             mode = new_mode
             submode[mode] = new_submode
 
-            if (mode == 2):  #mode for pixelflut
 
-                """ TODO documentation """
+            if (mode == 4):  # mode for stream of beat-patterns
 
                 if DEBUG_MODE:
                     timeproc = datetime.datetime.now()
 
-                data_enc = pixelflut_read()
-#                if not is_modes_changed:
-#                    #TODO read out the cancas (sockets?)
-#                    if pixelflut_queue is not None:
-#                        leds = pixelflut_queue.get()
-#                    else:
-#                        leds = np.zeros((NUM_LEDS_H, NUM_LEDS_V, 3), dtype='uint8')
-#                else:
-#                    #TODO start
-#                    pixelflut_queue = Queue()
-#                    pixelflut_thread = Thread(target=pixelflut.work,
-#                                              args=(1, pixelflut_brain, pixelflut_queue))
-#                    pixelflut_thread.start()
-#
+                #TODO calculate LEDS
+                leds = np.zeros((NUM_LEDS_H, NUM_LEDS_V, 3), dtype='uint8')
+
                 if DEBUG_MODE:
                     timesend = datetime.datetime.now()
-#                data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
+                data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
                 send_SPI(data_enc)
-            #else:
-            #    # not in pixelflut, thus stop the thread, if still running
-            #    if pixelflut_thread is not None:
-            #        # TODO kill the pixelflut_thread
-            #        pixelflut_thread = None
-            #        pixelflut_queue = None
 
 
-            if (mode == 3):  #mode for stream from NES/video
+            elif (mode == 3):  #mode for stream from NES/video
 
                 """ in the NES mode the new frame needs to get determined 
                     WHILE the arduino is writing the old frame to the leds
@@ -192,18 +168,22 @@ while True:
                     print("debug -", "leds:", leds.shape)
 
 
-            elif (mode == -1):  # mode for stream of beat-patterns
+            elif (mode == 2):  #mode for pixelflut
+
+                """ TODO documentation """
+
+                if DEBUG_MODE:
+                    timesend = datetime.datetime.now()
+
+                if not is_modes_changed:
+                    data_enc = leds.flatten().tobytes()
+                    #data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
+                    send_SPI(data_enc)
 
                 if DEBUG_MODE:
                     timeproc = datetime.datetime.now()
 
-                #TODO calculate LEDS
-                leds = np.zeros((NUM_LEDS_H, NUM_LEDS_V, 3), dtype='uint8')
-
-                if DEBUG_MODE:
-                    timesend = datetime.datetime.now()
-                data_enc = leds.transpose(1, 0, 2).flatten().tobytes()
-                send_SPI(data_enc)
+                leds = pixelflut_read()
 
 
             elif (mode == 1):  # mode for stream of images

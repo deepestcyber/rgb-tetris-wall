@@ -1,4 +1,4 @@
-#coding: utf8
+##coding: utf8
 
 __version__ = '0.6'
 
@@ -17,7 +17,7 @@ async = spawn
 
 
 class Client(object):
-    pps = 384  #5760
+    pps = 5760  #384  #5760
 
     def __init__(self, canvas, addr):
         self.canvas = canvas
@@ -114,7 +114,7 @@ class Canvas(object):
             client.task = spawn(client.serve, sock)
 
     def _loop(self):
-        doptim = 1.0 / 25
+        doptim = 1.0 / 50
         flip = pygame.display.flip
         getevents = pygame.event.get
 
@@ -259,6 +259,7 @@ def main():
 
 
 def work(host, port, brainfile, *, queue=None):
+    #print("brainfile:",brainfile)
     canvas = Canvas()
     task = spawn(canvas.serve, host, port)
     if queue is not None:
@@ -285,8 +286,8 @@ def work(host, port, brainfile, *, queue=None):
     task.join()
 
 
-def threaded(queue):
-    work("0.0.0.0", 1234, "../pixelflut/canvas_brain.py", queue=queue)
+def threaded(queue, brainfile='../pixelflut/canvas_brain.py'):
+    work("0.0.0.0", 1234, brainfile, queue=queue)
 
 
 if __name__ == '__main__':
